@@ -1,0 +1,54 @@
+#error {
+  color: rgb(243, 75, 75);
+}
+
+.xAxis line {
+  stroke: #b8b8b8;
+}
+
+#output {
+  height: 200px;
+  overflow-y: scroll;
+  background-color: #b8b8b8;
+}
+
+.channel-number {
+  display: block;
+  margin: 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.bg-1 {
+  background: #df5f5f;
+}
+.bg-2 {
+  background: #df9d5f;
+}
+.bg-3 {
+  background: #d7df5f;
+}
+.bg-4 {
+  background: #79df5f;
+}
+.bg-5 {
+  background: #5fdfbf;
+}
+.bg-6 {
+  background: #5f61df;
+}
+.bg-7 {
+  background: #a55fdf;
+}
+.bg-8 {
+  background: #df5faa;
+}
+
+canvas {
+  height: 80px !important;
+}
