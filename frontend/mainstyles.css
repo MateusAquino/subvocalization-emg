@@ -6,10 +6,37 @@
   stroke: #b8b8b8;
 }
 
+.info::before {
+  content: '?';
+  font-family: sans-serif;
+  vertical-align: middle;
+  font-weight: bold;
+  text-align: center;
+  line-height: 1.1;
+  display: inline-block;
+  width: 1.8ex;
+  height: 1.8ex;
+  border-radius: 1ex;
+  color: white;
+  background: gray;
+  border: thin solid gray;
+  margin-top: -2px;
+  margin-left: 2px;
+}
+
+.info:hover::before {
+  color: gray;
+  background: white;
+  border-color: gray;
+}
+
 #output {
   height: 200px;
   overflow-y: scroll;
-  background-color: #b8b8b8;
+  background-color: #000;
+  color: #fff;
+  border: 2px solid gray;
+  border-radius: 4px;
 }
 
 .channel-number {
@@ -27,24 +54,31 @@
 .bg-1 {
   background: #df5f5f;
 }
+
 .bg-2 {
   background: #df9d5f;
 }
+
 .bg-3 {
   background: #d7df5f;
 }
+
 .bg-4 {
   background: #79df5f;
 }
+
 .bg-5 {
   background: #5fdfbf;
 }
+
 .bg-6 {
   background: #5f61df;
 }
+
 .bg-7 {
   background: #a55fdf;
 }
+
 .bg-8 {
   background: #df5faa;
 }

@@ -10,6 +10,7 @@ const colors = [
 ];
 const charts = [];
 
+// EMG Charts
 for (let idx = 0; idx < 8; idx++) {
   const ctx = document.getElementById(`stream-${idx + 1}`);
 
@@ -65,9 +66,56 @@ for (let idx = 0; idx < 8; idx++) {
   ctx.addEventListener("wheel", (event) => {
     const delta = Math.sign(event.deltaY);
     zoom(chart, delta);
+    event.preventDefault();
   });
 
   charts.push(chart);
+}
+
+function addToCharts(data) {
+  for (let idx = 0; idx < 8; idx++) {
+    curve = [];
+    for (let i = 0; i < data[idx].length; i++) {
+      channelData = data[idx][i];
+      curve.push({ x: i, y: channelData });
+    }
+    charts[idx].data.datasets[0].data = curve;
+    charts[idx].update();
+  }
+}
+
+const startingSpinner = document.getElementById("startingSpinner");
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+
+function setState(state) {
+  document.getElementById("error").innerText = "";
+  document.getElementById("state").innerText = state;
+
+  if (state == "Idle" || state == "Error") {
+    startBtn.style.display = "initial";
+    stopBtn.style.display = "none";
+    startingSpinner.style.display = "none";
+    startBtn.disabled = false;
+  } else if (state == "Starting") {
+    startBtn.disabled = true;
+    startingSpinner.style.display = "inline-block";
+  } else if (state == "Running") {
+    startBtn.disabled = false;
+    startingSpinner.style.display = "none";
+    startBtn.style.display = "none";
+    stopBtn.style.display = "initial";
+  }
+}
+
+// Action buttons
+function startSession() {
+  const port = document.getElementById("port").value;
+  eel.start_session(port);
+}
+
+function stopSession() {
+  eel.stop_session();
 }
 
 function zoomAll(delta) {
@@ -92,45 +140,18 @@ function zoom(chart, delta) {
   }
 }
 
-function addToCharts(data) {
-  for (let idx = 0; idx < 8; idx++) {
-    curve = [];
-    for (let i = 0; i < data[idx].length; i++) {
-      channelData = data[idx][i];
-      curve.push({ x: i, y: channelData });
-    }
-    charts[idx].data.datasets[0].data = curve;
-    charts[idx].update();
-  }
+function startTraining() {
+  const wps = document.getElementById("wps").value;
+  const period = document.getElementById("period").value;
+  const includeSilence = document.getElementById("includeSilence").checked;
+  const includeFallback = document.getElementById("includeFallback").checked;
+  const words = Array.from(document.getElementById("lang").options).map(e => e.text)
+  eel.start_training(wps, period, includeSilence, includeFallback, words)
 }
 
-function startSession() {
-  port = document.getElementById("port").value;
-  eel.start_session(port);
-}
+// Bootstrap
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-function stopSession() {
-  eel.stop_session();
-}
-
-const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
-
-function setState(state) {
-  document.getElementById("error").innerText = "";
-  document.getElementById("state").innerText = state;
-
-  if (state == "Idle" || state == "Error") {
-    startBtn.style.display = "initial";
-    stopBtn.style.display = "none";
-    startBtn.disabled = false;
-  } else if (state == "Starting") {
-    startBtn.disabled = true;
-  } else if (state == "Running") {
-    startBtn.disabled = false;
-    startBtn.style.display = "none";
-    stopBtn.style.display = "initial";
-  }
-}
-
+// Eel Bridge setup
 eel.setup();

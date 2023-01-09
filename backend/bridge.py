@@ -1,4 +1,5 @@
-from backend.cyton_stream import *
+from backend.training import train_stream
+from backend.cyton_stream import is_session_running, start_stream, stop_stream
 import eel
 import sys
 import glob
@@ -39,6 +40,13 @@ def update_ports():
     else:
         []
     eel.set_ports(ports)
+
+
+@eel.expose
+def start_training(wps, period, silence, fallback, words):
+    wps = int(wps)
+    period = int(period)
+    eel.spawn(train_stream, wps, period, silence, fallback, words)
 
 
 eel.init('frontend')

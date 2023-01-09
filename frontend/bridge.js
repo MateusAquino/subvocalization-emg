@@ -3,7 +3,7 @@ function stream(data) {
 }
 
 function log(message) {
-  document.getElementById("output").innerText += message + "\n";
+  document.getElementById("output").innerText += `> ${message}\n`;
   var elem = document.getElementById("output");
   elem.scrollTop = elem.scrollHeight;
 }
