@@ -29,8 +29,14 @@ function set_ports(ports) {
   );
 }
 
+function train_step(word, loopCount, totalLoops) {
+  setTraining(loopCount, totalLoops)
+  document.getElementById("reading").innerText = parseWord(word);
+}
+
 eel.expose(log);
 eel.expose(state);
 eel.expose(error);
 eel.expose(stream);
 eel.expose(set_ports);
+eel.expose(train_step);

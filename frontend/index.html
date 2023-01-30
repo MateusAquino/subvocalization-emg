@@ -15,7 +15,21 @@
 </head>
 
 <body class="m-0">
-  <div class="container text-center">
+  <div id="window-recording" class="recording d-none align-items-center justify-content-center">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div style="display: contents">
+          <div id="reading"></div>
+          <div class="w-100 h-0"></div>
+          <div id="progress" class="pie-wrapper">
+            <span class="label"><span id="percentage">0</span><span class="smaller">%</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="window-main" class="container text-center">
     <h1 class="mt-5">Subvocalization</h1>
     <div class="row mt-3">
       <div class="col">
@@ -39,6 +53,10 @@
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="emg-tab" data-bs-toggle="tab" data-bs-target="#emg-tab-pane" type="button"
           role="tab" aria-controls="emg-tab-pane" aria-selected="true">EMG</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="recording-tab" data-bs-toggle="tab" data-bs-target="#recording-tab-pane"
+          type="button" role="tab" aria-controls="recording-tab-pane" aria-selected="false">Recordings</button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane" type="button"
@@ -104,13 +122,16 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane fade text-start show active" id="network-tab-pane" role="tabpanel"
-        aria-labelledby="network-tab" tabindex="0">
+      <div class="tab-pane fade text-start" id="recording-tab-pane" role="tabpanel" aria-labelledby="recording-tab"
+        tabindex="0">
         <div class="row mt-2">
           <div class="col align-items-center">
-            <h3 class="text-start ps-4 mb-3">Training</h3>
-
+            <h3 class="text-start ps-4 mb-3">Recording</h3>
             <form class="ps-4">
+              <div class="mb-3">
+                <label for="saveasrec" class="form-label">Save as (ID)</label>
+                <input class="form-control" id="saveasrec">
+              </div>
               <div class="mb-3">
                 <label for="wps" class="form-label">Word p/ Second (WPS)</label>
                 <input type="number" min="1" max="20" class="form-control" id="wps" value="2">
@@ -134,8 +155,7 @@
                   <option value="Não">Não</option>
                 </select>
                 <div class="mt-2 input-group">
-                  <input id="word" type="text" class="form-control" placeholder="Word" aria-label="Recipient's username"
-                    aria-describedby="basic-addon2">
+                  <input id="word" type="text" class="form-control" placeholder="Word">
                   <div class="input-group-append ms-1">
                     <button class="btn btn-outline-secondary" type="button">Add</button>
                     <button class="btn btn-outline-secondary" type="button">Delete</button>
@@ -151,15 +171,112 @@
                   class="info"></span>
               </div>
               <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="includeFallback">
+                <input type="checkbox" class="form-check-input" id="includeFallback" onchange="showFallbacks(this)">
                 <label class="form-check-label" for="includeFallback">Include fallback</label>
                 <span data-bs-toggle="tooltip" data-bs-title="Add random words to include a fallback in the training"
                   class="info"></span>
               </div>
+              <div id="fallbacks-section" class="mb-3 d-none">
+                <label for="fallbacks" class="form-label">Fallbacks</label>
+                <select class="form-select" name="fallbacks" id="fallbacks" multiple>
+                  <option value="Talvez">Talvez</option>
+                  <option value="Caminhar">Caminhar</option>
+                  <option value="Sal">Sal</option>
+                  <option value="Aluna">Aluna</option>
+                  <option value="Escutar">Escutar</option>
+                </select>
+                <div class="mt-2 input-group">
+                  <input id="fallback" type="text" class="form-control" placeholder="Word">
+                  <div class="input-group-append ms-1">
+                    <button class="btn btn-outline-secondary" type="button">Add</button>
+                    <button class="btn btn-outline-secondary" type="button">Delete</button>
+                  </div>
+                </div>
+              </div>
+              <button onclick="startRecording()" type="button" class="btn btn-primary">Start recording</button>
+            </form>
+          </div>
+          <div class="col">
+            <div class="mb-3">
+              <h3 class="text-start ps-4 mb-3">Saves</h3>
+              <form class="ps-4">
+                <label for="savesrec" class="form-label">Recording IDs</label>
+                <select class="form-select" name="savesrec" id="lang" multiple>
+                  <option value="Recording 1">Recording 1</option>
+                </select>
+                <div class="mt-2">
+                  <button class="btn btn-outline-secondary float-end" type="button">Delete</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade text-start show active" id="network-tab-pane" role="tabpanel"
+        aria-labelledby="network-tab" tabindex="0">
+        <div class="row mt-2">
+          <div class="col align-items-center">
+            <h3 class="text-start ps-4 mb-3">Training</h3>
+            <form class="ps-4">
+              <div class="mb-3">
+                <label for="saveasnet" class="form-label">Save as (ID)</label>
+                <input class="form-control" id="saveasnet">
+              </div>
+              <div class="row mt-3 align-items-center">
+                <div class="col">
+                  <label for="notincluded" class="form-label">Recording IDs</label>
+                </div>
+                <div class="col align-items-center col-1"></div>
+                <div class="col">
+                  <label for="included" class="form-label">Include in Training</label>
+                </div>
+              </div>
+              <div class="row align-items-center mb-3">
+                <div class="col">
+                  <select class="form-select" name="notincluded" id="lang" multiple>
+                    <option value="Recording 1">Recording 1</option>
+                  </select>
+                </div>
+                <div class="col align-items-center col-1">
+                  <div class="row"><button class="btn btn-outline-secondary" type="button">&lt;</button></div>
+                  <div class="row mt-1"><button class="btn btn-outline-secondary" type="button">&gt;</button></div>
+                </div>
+                <div class="col">
+                  <select class="form-select" name="included" id="lang" multiple>
+                    <option value="Recording 1">Recording 1</option>
+                  </select>
+                </div>
+
+              </div>
+              <div class="mb-3">
+                <label for="trainingratio" class="form-label">Training / Validation ratio</label>
+                <span data-bs-toggle="tooltip"
+                  data-bs-title="Percentage of words included in training, the remaining data will be used to measure the accuracy."
+                  class="info"></span>
+                <div class="row">
+                  <div class="col">
+                    <input type="range" class="form-range" min="1" max="100" id="trainingratio" value="90">
+                  </div>
+                  <div id="trainingratio-percent" class="col col-1 text-end">90%</div>
+                </div>
+              </div>
               <button onclick="startTraining()" type="button" class="btn btn-primary">Start training</button>
             </form>
           </div>
-          <div class="col"></div>
+          <div class="col">
+            <div class="mb-3">
+              <h3 class="text-start ps-4 mb-3">Saves</h3>
+              <form class="ps-4">
+                <label for="savesnet" class="form-label">Recording IDs</label>
+                <select class="form-select" name="savesnet" id="lang" multiple>
+                  <option value="Recording 1">Recording 1</option>
+                </select>
+                <div class="mt-2">
+                  <button class="btn btn-outline-secondary float-end" type="button">Delete</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </article>

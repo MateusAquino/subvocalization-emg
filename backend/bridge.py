@@ -1,4 +1,4 @@
-from backend.training import train_stream
+from backend.recording import record_stream
 from backend.cyton_stream import is_session_running, start_stream, stop_stream
 import eel
 import sys
@@ -43,10 +43,10 @@ def update_ports():
 
 
 @eel.expose
-def start_training(wps, period, silence, fallback, words):
+def start_recording(wps, period, silence, fallback, words):
     wps = int(wps)
     period = int(period)
-    eel.spawn(train_stream, wps, period, silence, fallback, words)
+    eel.spawn(record_stream, wps, period, silence, fallback, words)
 
 
 eel.init('frontend')

@@ -1,3 +1,17 @@
+:root {
+  --progress: 0;
+  --ratio: 90;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  padding: 0;
+}
+
 #error {
   color: rgb(243, 75, 75);
 }
@@ -85,4 +99,83 @@
 
 canvas {
   height: 80px !important;
+}
+
+@import url(https://fonts.googleapis.com/css?family=Lato:700);
+
+.recording {
+  background: #1e1e1e;
+  color: #444;
+  font-family: "Lato", Tahoma, Geneva, sans-serif;
+  font-size: 4em;
+  padding: 10px;
+  width: 100%;
+  height: 100vh;
+  flex-wrap: wrap;
+}
+
+.recording > *,
+.recording > *:before,
+.recording > *:after {
+  box-sizing: border-box;
+}
+
+.pie-wrapper {
+  height: 1em;
+  width: 1em;
+  float: left;
+  margin: 15px;
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: .5;
+}
+
+.pie-wrapper .label {
+  border-radius: 50%;
+  bottom: 0.4em;
+  color: #ecf0f1;
+  cursor: default;
+  display: block;
+  font-size: 0.25em;
+  left: 0.4em;
+  line-height: 2.8em;
+  position: absolute;
+  right: 0.4em;
+  text-align: center;
+  top: 0.4em;
+  background: transparent;
+}
+.pie-wrapper .label .smaller {
+  color: #bdc3c7;
+  font-size: 0.45em;
+  padding-bottom: 20px;
+  vertical-align: super;
+}
+
+.pie-wrapper:before {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(#3498db calc(var(--progress)*100%),#34495e 0);
+}
+
+#reading {
+  text-transform: uppercase;
+  font-size: 2em;
+  color: #eee;
+}
+
+
+#trainingratio::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, #0d6efd 0%, #0d6efd calc(var(--ratio) * 1%), lightgray calc(var(--ratio) * 1%), lightgray 100%);
+}
+
+#trainingratio::-moz-range-track {
+  background: linear-gradient(to right, #0d6efd 0%, #0d6efd calc(var(--ratio) * 1%), lightgray calc(var(--ratio) * 1%), lightgray 100%);
+}
+
+#trainingratio::-ms-track {
+  background: linear-gradient(to right, #0d6efd 0%, #0d6efd calc(var(--ratio) * 1%), lightgray calc(var(--ratio) * 1%), lightgray 100%);
 }

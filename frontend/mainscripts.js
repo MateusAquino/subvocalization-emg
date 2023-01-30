@@ -140,18 +140,59 @@ function zoom(chart, delta) {
   }
 }
 
-function startTraining() {
+function startRecording() {
   const wps = document.getElementById("wps").value;
   const period = document.getElementById("period").value;
   const includeSilence = document.getElementById("includeSilence").checked;
   const includeFallback = document.getElementById("includeFallback").checked;
   const words = Array.from(document.getElementById("lang").options).map(e => e.text)
-  eel.start_training(wps, period, includeSilence, includeFallback, words)
+  eel.start_recording(wps, period, includeSilence, includeFallback, words)
+}
+
+function setRecording(loopCount, totalLoops) {
+  const active = loopCount != totalLoops;
+  document.getElementById("window-recording").style.setProperty("display", active ? "flex" : "none", "important")
+  document.getElementById("window-main").style.setProperty("display", active ? "none" : "block", "important")
+  document.getElementById("progress").style.setProperty("--progress", loopCount/totalLoops)
+  document.getElementById("percentage").innerText = Math.trunc(loopCount/totalLoops*100)
+}
+
+function parseWord(word) {
+  const fallbacks = Array.from(document.getElementById("fallbacks").options).map(e => e.text);
+
+  if (word == "$PREPARE") return prepare();
+  else if (word == "$SILENCE") return " ";
+  else if (word == "$FALLBACK") return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  else return word;
+}
+
+function prepare() {
+  setTimeout(() => document.getElementById("percentage").innerText = "3", 0000)
+  setTimeout(() => document.getElementById("percentage").innerText = "2", 1000)
+  setTimeout(() => document.getElementById("percentage").innerText = "1", 2000)
+  return "Prepare...";
+}
+
+function showFallbacks(checkbox) {
+  const active = checkbox.checked
+  if (active) document.getElementById("fallbacks-section").classList.remove("d-none")
+  else document.getElementById("fallbacks-section").classList.add("d-none")
 }
 
 // Bootstrap
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+// Events
+(() => {
+  const ratioSlider = document.getElementById("trainingratio");
+  const ratioPercent = document.getElementById("trainingratio-percent");
+  
+  ratioSlider.oninput = () => {
+    ratioPercent.innerText = `${ratioSlider.value}%`;
+    ratioSlider.style.setProperty("--ratio", ratioSlider.value)
+  }
+})()
 
 // Eel Bridge setup
 eel.setup();
