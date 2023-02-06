@@ -8,3 +8,6 @@ bluepy==1.3.0
 brainflow==5.6.0
 pylsl==1.16.0
 Eel==0.15.1
+pandas==1.5.3
+scikit-learn==1.2.1
+np_utils==0.6.0

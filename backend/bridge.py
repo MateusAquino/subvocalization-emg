@@ -1,12 +1,15 @@
-from backend.recording import record_stream
 from backend.cyton_stream import is_session_running, start_stream, stop_stream
+from backend.recording import record_stream
+from backend.training import train_data
+from os import walk
+import glob
 import eel
 import sys
-import glob
 
 
 @eel.expose
 def setup():
+    eel.sync_files()
     update_ports()
     if (is_session_running()):
         eel.state("Running")
@@ -43,10 +46,25 @@ def update_ports():
 
 
 @eel.expose
-def start_recording(wps, period, silence, fallback, words):
+def start_recording(saveasrec, wps, period, silence, fallback, words):
     wps = int(wps)
     period = int(period)
-    eel.spawn(record_stream, wps, period, silence, fallback, words)
+    eel.spawn(record_stream, saveasrec, wps, period, silence, fallback, words)
+
+@eel.expose
+def list_saves():
+  saves = next(walk("dist/saves"), (None, None, []))[2]
+  return saves
+
+@eel.expose
+def list_networks():
+  networks = next(walk("dist/networks"), (None, None, []))[2]
+  return networks
+
+@eel.expose
+def start_training(file_name, ratio, recordings):
+  eel.spawn(train_data, file_name, ratio, recordings)
+
 
 
 eel.init('frontend')

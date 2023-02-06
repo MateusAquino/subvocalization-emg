@@ -1,8 +1,7 @@
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 import argparse
 import logging
-import time
 import eel
 
 running = False
@@ -77,7 +76,7 @@ def start_stream(port=''):
         sampling_rate = BoardShim.get_sampling_rate(args.board_id)
         board = BoardShim(args.board_id, params)
         board.prepare_session()
-        board.start_stream(450000)
+        board.start_stream(3600 * 5 * 60)
         eel.state("Running")
         eel.log("Stream started!")
         running = True
@@ -96,6 +95,22 @@ def start_stream(port=''):
         eel.error(": ".join((type(inst).__name__,) + inst.args))
         raise inst
 
+def get_board_data():
+  global board
+  if board:
+    return board.get_board_data()
+  else:
+    return []
+
+def limit_channels(data):
+    if data.size == 0:
+        return data
+    curves = [None] * 8
+    for count, channel in enumerate(exg_channels):
+        if count >= 8:
+            continue
+        curves[count] = data[channel].tolist()
+    return curves
 
 def preprocess(data):
     if data.size == 0:

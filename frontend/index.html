@@ -137,8 +137,8 @@
                 <input type="number" min="1" max="20" class="form-control" id="wps" value="2">
               </div>
               <div class="mb-3">
-                <label for="period" class="form-label">Session period (minutes)</label>
-                <input type="number" min="1" max="60" class="form-control" id="period" value="5">
+                <label for="period" class="form-label">Session period (seconds)</label>
+                <input type="number" min="1" max="300" class="form-control" id="period" value="300">
               </div>
               <div class="mb-3">
                 <label for="word" class="form-label">Words</label>
@@ -157,8 +157,8 @@
                 <div class="mt-2 input-group">
                   <input id="word" type="text" class="form-control" placeholder="Word">
                   <div class="input-group-append ms-1">
-                    <button class="btn btn-outline-secondary" type="button">Add</button>
-                    <button class="btn btn-outline-secondary" type="button">Delete</button>
+                    <button id="add-word" class="btn btn-outline-secondary" type="button">Add</button>
+                    <button id="delete-word" class="btn btn-outline-secondary" type="button">Delete</button>
                   </div>
                 </div>
               </div>
@@ -188,8 +188,8 @@
                 <div class="mt-2 input-group">
                   <input id="fallback" type="text" class="form-control" placeholder="Word">
                   <div class="input-group-append ms-1">
-                    <button class="btn btn-outline-secondary" type="button">Add</button>
-                    <button class="btn btn-outline-secondary" type="button">Delete</button>
+                    <button id="add-fallback" class="btn btn-outline-secondary" type="button">Add</button>
+                    <button id="delete-fallback" class="btn btn-outline-secondary" type="button">Delete</button>
                   </div>
                 </div>
               </div>
@@ -200,12 +200,11 @@
             <div class="mb-3">
               <h3 class="text-start ps-4 mb-3">Saves</h3>
               <form class="ps-4">
-                <label for="savesrec" class="form-label">Recording IDs</label>
-                <select class="form-select" name="savesrec" id="lang" multiple>
-                  <option value="Recording 1">Recording 1</option>
-                </select>
+                <label for="recordings" class="form-label">Recording IDs</label>
+                <select class="form-select" name="recordings" id="recordings" multiple> </select>
                 <div class="mt-2">
-                  <button class="btn btn-outline-secondary float-end" type="button">Delete</button>
+                  <button id="delete-recording" class="btn btn-outline-secondary float-end"
+                    type="button">Delete</button>
                 </div>
               </form>
             </div>
@@ -224,7 +223,7 @@
               </div>
               <div class="row mt-3 align-items-center">
                 <div class="col">
-                  <label for="notincluded" class="form-label">Recording IDs</label>
+                  <label for="excluded" class="form-label">Recording IDs</label>
                 </div>
                 <div class="col align-items-center col-1"></div>
                 <div class="col">
@@ -233,20 +232,17 @@
               </div>
               <div class="row align-items-center mb-3">
                 <div class="col">
-                  <select class="form-select" name="notincluded" id="lang" multiple>
-                    <option value="Recording 1">Recording 1</option>
-                  </select>
+                  <select class="form-select" name="excluded" id="excluded" multiple> </select>
                 </div>
                 <div class="col align-items-center col-1">
-                  <div class="row"><button class="btn btn-outline-secondary" type="button">&lt;</button></div>
-                  <div class="row mt-1"><button class="btn btn-outline-secondary" type="button">&gt;</button></div>
+                  <div class="row"><button id="btn-exclude" class="btn btn-outline-secondary"
+                      type="button">&lt;</button></div>
+                  <div class="row mt-1"><button id="btn-include" class="btn btn-outline-secondary"
+                      type="button">&gt;</button></div>
                 </div>
                 <div class="col">
-                  <select class="form-select" name="included" id="lang" multiple>
-                    <option value="Recording 1">Recording 1</option>
-                  </select>
+                  <select class="form-select" name="included" id="included" multiple> </select>
                 </div>
-
               </div>
               <div class="mb-3">
                 <label for="trainingratio" class="form-label">Training / Validation ratio</label>
@@ -265,14 +261,12 @@
           </div>
           <div class="col">
             <div class="mb-3">
-              <h3 class="text-start ps-4 mb-3">Saves</h3>
+              <h3 class="text-start ps-4 mb-3">Networks</h3>
               <form class="ps-4">
-                <label for="savesnet" class="form-label">Recording IDs</label>
-                <select class="form-select" name="savesnet" id="lang" multiple>
-                  <option value="Recording 1">Recording 1</option>
-                </select>
+                <label for="networks" class="form-label">Network IDs</label>
+                <select class="form-select" name="networks" id="networks" multiple> </select>
                 <div class="mt-2">
-                  <button class="btn btn-outline-secondary float-end" type="button">Delete</button>
+                  <button id="delete-network" class="btn btn-outline-secondary float-end" type="button">Delete</button>
                 </div>
               </form>
             </div>
@@ -307,6 +301,7 @@
     integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
     crossorigin="anonymous"></script>
   <script src="./mainscripts.js"></script>
+  <script src="./events.js"></script>
   <script src="./bridge.js"></script>
 </body>
 

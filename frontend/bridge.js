@@ -30,8 +30,19 @@ function set_ports(ports) {
 }
 
 function train_step(word, loopCount, totalLoops) {
-  setTraining(loopCount, totalLoops)
+  setRecording(loopCount, totalLoops)
   document.getElementById("reading").innerText = parseWord(word);
+}
+
+function sync_files() {
+  const saves = eel.list_saves()()
+  const networks = eel.list_networks()()
+
+  Promise.all([saves, networks]).then(values => {
+    const [saveList, networkList] = values;
+    syncSelect("recordings", saveList.map(save => save.slice(0, -4)));
+    syncSelect("networks", networkList.map(network => network.slice(0, -4)));
+  })
 }
 
 eel.expose(log);
@@ -40,3 +51,4 @@ eel.expose(error);
 eel.expose(stream);
 eel.expose(set_ports);
 eel.expose(train_step);
+eel.expose(sync_files);

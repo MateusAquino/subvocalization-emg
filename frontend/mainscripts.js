@@ -143,14 +143,16 @@ function zoom(chart, delta) {
 function startRecording() {
   const wps = document.getElementById("wps").value;
   const period = document.getElementById("period").value;
+  const saveasrec = document.getElementById("saveasrec").value;
   const includeSilence = document.getElementById("includeSilence").checked;
   const includeFallback = document.getElementById("includeFallback").checked;
   const words = Array.from(document.getElementById("lang").options).map(e => e.text)
-  eel.start_recording(wps, period, includeSilence, includeFallback, words)
+  eel.start_recording(saveasrec, wps, period, includeSilence, includeFallback, words)
 }
 
 function setRecording(loopCount, totalLoops) {
   const active = loopCount != totalLoops;
+  loopCount += 1;
   document.getElementById("window-recording").style.setProperty("display", active ? "flex" : "none", "important")
   document.getElementById("window-main").style.setProperty("display", active ? "none" : "block", "important")
   document.getElementById("progress").style.setProperty("--progress", loopCount/totalLoops)
@@ -179,20 +181,28 @@ function showFallbacks(checkbox) {
   else document.getElementById("fallbacks-section").classList.add("d-none")
 }
 
+function syncSelect(selectId, list) {
+  const select = document.getElementById(selectId);
+  const options = Array.from(select.options);
+  const existing = options.map(option => option.value);
+  const toAdd = list.filter(el => !existing.includes(el));
+  const toRemove = options.filter(option => !list.includes(option.value));
+  toAdd.forEach(el => select.add(new Option(el, el)));
+  toRemove.forEach(option => select.removeChild(option));
+}
+
+function startTraining() {
+  const saveasnet = document.getElementById("saveasnet").value;
+  const ratio = document.getElementById("trainingratio").value;
+  const options = document.getElementById("included").options;
+  const includedRecords = Array.from(options).map(option => option.value);
+
+  eel.start_training(saveasnet, ratio, includedRecords)
+}
+
 // Bootstrap
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-// Events
-(() => {
-  const ratioSlider = document.getElementById("trainingratio");
-  const ratioPercent = document.getElementById("trainingratio-percent");
-  
-  ratioSlider.oninput = () => {
-    ratioPercent.innerText = `${ratioSlider.value}%`;
-    ratioSlider.style.setProperty("--ratio", ratioSlider.value)
-  }
-})()
 
 // Eel Bridge setup
 eel.setup();
