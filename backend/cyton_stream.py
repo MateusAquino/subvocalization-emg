@@ -1,5 +1,6 @@
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+import pandas as pd
 import argparse
 import logging
 import eel
@@ -83,7 +84,7 @@ def start_stream(port=''):
         while running:
             eel.sleep(0.05)  # 50ms
             data = board.get_current_board_data(sampling_rate*10)
-            preprocessed_data = preprocess(data)
+            preprocessed_data = preprocess(data, args.board_id, exg_channels)
             eel.stream(preprocessed_data)
         board.stop_stream()
         board.release_session()
@@ -112,19 +113,21 @@ def limit_channels(data):
         curves[count] = data[channel].tolist()
     return curves
 
-def preprocess(data):
+def preprocess(data, board_id, exg_channels):
+    sampling_rate = BoardShim.get_sampling_rate(board_id)
     if data.size == 0:
         return data
     curves = [None] * 8
     for count, channel in enumerate(exg_channels):
         if count >= 8:
             continue
-        DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
-        DataFilter.perform_bandpass(data[channel], sampling_rate, 3.0, 45.0, 2,
+        channel_data = data[channel].to_numpy() if isinstance(data[channel], pd.Series) else data[channel]
+        DataFilter.detrend(channel_data, DetrendOperations.CONSTANT.value)
+        DataFilter.perform_bandpass(channel_data, sampling_rate, 3.0, 45.0, 2,
                                     FilterTypes.BUTTERWORTH.value, 0)
-        DataFilter.perform_bandstop(data[channel], sampling_rate, 48.0, 52.0, 2,
+        DataFilter.perform_bandstop(channel_data, sampling_rate, 48.0, 52.0, 2,
                                     FilterTypes.BUTTERWORTH.value, 0)
-        DataFilter.perform_bandstop(data[channel], sampling_rate, 58.0, 62.0, 2,
+        DataFilter.perform_bandstop(channel_data, sampling_rate, 58.0, 62.0, 2,
                                     FilterTypes.BUTTERWORTH.value, 0)
-        curves[count] = data[channel].tolist()
+        curves[count] = channel_data.tolist()
     return curves

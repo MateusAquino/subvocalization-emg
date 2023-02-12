@@ -194,10 +194,12 @@ function syncSelect(selectId, list) {
 function startTraining() {
   const saveasnet = document.getElementById("saveasnet").value;
   const ratio = document.getElementById("trainingratio").value;
+  const batch_size = document.getElementById("batch_size").value;
+  const epochs = document.getElementById("epochs").value;
   const options = document.getElementById("included").options;
   const includedRecords = Array.from(options).map(option => option.value);
 
-  eel.start_training(saveasnet, ratio, includedRecords)
+  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs)
 }
 
 // Bootstrap

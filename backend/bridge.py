@@ -1,7 +1,8 @@
 from backend.cyton_stream import is_session_running, start_stream, stop_stream
 from backend.recording import record_stream
 from backend.training import train_data
-from os import walk
+from shutil import rmtree
+from os import walk, remove
 import glob
 import eel
 import sys
@@ -51,20 +52,35 @@ def start_recording(saveasrec, wps, period, silence, fallback, words):
     period = int(period)
     eel.spawn(record_stream, saveasrec, wps, period, silence, fallback, words)
 
+
 @eel.expose
 def list_saves():
-  saves = next(walk("dist/saves"), (None, None, []))[2]
-  return saves
+    saves = next(walk("dist/saves"), (None, None, []))[2]
+    return saves
+
 
 @eel.expose
 def list_networks():
-  networks = next(walk("dist/networks"), (None, None, []))[2]
-  return networks
+    networks = next(walk("dist/networks"), (None, None, []))[1]
+    return networks
+
 
 @eel.expose
-def start_training(file_name, ratio, recordings):
-  eel.spawn(train_data, file_name, ratio, recordings)
+def delete_save(save):
+    remove("dist/saves/%s.csv" % (save))
 
+
+@eel.expose
+def delete_network(network):
+    rmtree("dist/networks/" + network)
+
+
+@eel.expose
+def start_training(file_name, ratio, recordings, batch_size, epochs):
+    ratio = int(ratio)
+    batch_size = int(batch_size)
+    epochs = int(epochs)
+    eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs)
 
 
 eel.init('frontend')

@@ -62,9 +62,13 @@
         <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane" type="button"
           role="tab" aria-controls="network-tab-pane" aria-selected="false">Neural Network</button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="evaluator-tab" data-bs-toggle="tab" data-bs-target="#evaluator-tab-pane"
+          type="button" role="tab" aria-controls="evaluator-tab-pane" aria-selected="false">Evaluator</button>
+      </li>
     </ul>
     <article class="mt-3 tab-content">
-      <div class="tab-pane fade" id="emg-tab-pane" role="tabpanel" aria-labelledby="emg-tab" tabindex="0">
+      <div class="tab-pane fade show active" id="emg-tab-pane" role="tabpanel" aria-labelledby="emg-tab" tabindex="0">
         <div class="row mt-2">
           <div class="col align-items-center">
             <h3 class="text-start ps-4 mb-3">
@@ -162,7 +166,6 @@
                   </div>
                 </div>
               </div>
-
               <div class="mb-3 form-check">
                 <input checked type="checkbox" class="form-check-input" id="includeSilence">
                 <label class="form-check-label" for="includeSilence">Include silence</label>
@@ -193,7 +196,8 @@
                   </div>
                 </div>
               </div>
-              <button onclick="startRecording()" type="button" class="btn btn-primary">Start recording</button>
+              <button onclick="startRecording()" type="button" class="float-end btn btn-primary">Start
+                recording</button>
             </form>
           </div>
           <div class="col">
@@ -211,8 +215,8 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane fade text-start show active" id="network-tab-pane" role="tabpanel"
-        aria-labelledby="network-tab" tabindex="0">
+      <div class="tab-pane fade text-start" id="network-tab-pane" role="tabpanel" aria-labelledby="network-tab"
+        tabindex="0">
         <div class="row mt-2">
           <div class="col align-items-center">
             <h3 class="text-start ps-4 mb-3">Training</h3>
@@ -244,6 +248,17 @@
                   <select class="form-select" name="included" id="included" multiple> </select>
                 </div>
               </div>
+              <div class="row my-3 align-items-center">
+                <div class="col">
+                  <label for="batch_size" class="form-label">Batch size</label>
+                  <input type="number" min="1" max="1000" class="form-control" name="batch_size" id="batch_size"
+                    value="100">
+                </div>
+                <div class="col">
+                  <label for="epochs" class="form-label">Epochs</label>
+                  <input type="number" min="1" max="1000" class="form-control" name="epochs" id="epochs" value="300">
+                </div>
+              </div>
               <div class="mb-3">
                 <label for="trainingratio" class="form-label">Training / Validation ratio</label>
                 <span data-bs-toggle="tooltip"
@@ -256,7 +271,7 @@
                   <div id="trainingratio-percent" class="col col-1 text-end">90%</div>
                 </div>
               </div>
-              <button onclick="startTraining()" type="button" class="btn btn-primary">Start training</button>
+              <button onclick="startTraining()" type="button" class="float-end btn btn-primary">Start training</button>
             </form>
           </div>
           <div class="col">
@@ -269,6 +284,48 @@
                   <button id="delete-network" class="btn btn-outline-secondary float-end" type="button">Delete</button>
                 </div>
               </form>
+            </div>
+            <div class="row mt-2">
+              <h3 class="text-start ps-4 my-3">Results</h3>
+              <div class="ps-4 w-100">
+                <div class="progress">
+                  <div id="train-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="row my-3 align-items-center">
+                  <div class="col">
+                    <div>Training (loss): <span id="t-loss">0</span></div>
+                    <div>Training (accuracy): <span id="t-acc">0%</span></div>
+                    <div>Training (val_loss): <span id="t-vloss">0</span></div>
+                    <div>Training (val_accuracy): <span id="t-vacc">0%</span></div>
+                  </div>
+                  <div class="col">
+                    <div>Validation (loss): <span id="v-loss">0</span></div>
+                    <div>Validation (accuracy): <span id="v-acc">0%</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-pane fade text-start" id="evaluator-tab-pane" role="tabpanel" aria-labelledby="evaluator-tab"
+        tabindex="0">
+        <div class="row mt-2">
+          <div class="col align-items-center col-md-4">
+            <h3 class="text-start ps-4 mb-3">Classification</h3>
+            <form class="ps-4">
+              <label for="evaluate-network" class="form-label">Network ID</label>
+              <select class="mb-3 form-select" name="evaluate-network" id="evaluate-network"> </select>
+              <button onclick="startEvaluation()" type="button" class="float-end btn btn-primary">Start classification
+                stream</button>
+            </form>
+          </div>
+          <div class="col">
+            <div class="mb-3">
+              <h3 class="text-start ps-4 mb-3">Evaluation</h3>
+              <div class="ps-4">
+                <div id="evaluated-word" class="text-center"></div>
+              </div>
             </div>
           </div>
         </div>
