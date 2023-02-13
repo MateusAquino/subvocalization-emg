@@ -43,14 +43,6 @@ def train_data(network_id, ratio, recordings, batch_size, epochs):
         emg_words.append(word)
         emg_data.append(data)
 
-    # Plot words
-    # plt.figure()
-    # _f, axarr = plt.subplots(1, len(emg_words), constrained_layout=True)
-    # for i, word in enumerate(emg_words):
-    #   axarr[i].imshow(emg_data[i], cmap='hot', interpolation='none')
-    #   axarr[i].title.set_text(word)
-    # plt.show()
-
     # Get minimum length of emg_data to make all data the same length
     samples = min([len(x) for x in emg_data])
     data_reduced = [x[:samples] for x in emg_data]
