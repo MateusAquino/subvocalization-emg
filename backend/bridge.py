@@ -1,6 +1,7 @@
-from backend.cyton_stream import is_session_running, start_stream, stop_stream
+from backend.cyton_stream import is_session_running, start_stream, stop_stream, set_save_resources
 from backend.recording import record_stream
 from backend.training import train_data
+from backend.classifier import predict_emg, stop_predicting_stream
 from shutil import rmtree
 from os import walk, remove
 import glob
@@ -12,6 +13,7 @@ import sys
 def setup():
     eel.sync_files()
     update_ports()
+    set_save_resources(False)
     if (is_session_running()):
         eel.state("Running")
     else:
@@ -56,6 +58,8 @@ def start_recording(saveasrec, wps, period, silence, fallback, words):
 @eel.expose
 def list_saves():
     saves = next(walk("dist/saves"), (None, None, []))[2]
+    if ".gitignore" in saves:
+        saves.remove(".gitignore")
     return saves
 
 
@@ -68,11 +72,13 @@ def list_networks():
 @eel.expose
 def delete_save(save):
     remove("dist/saves/%s.csv" % (save))
+    eel.sync_files()
 
 
 @eel.expose
 def delete_network(network):
     rmtree("dist/networks/" + network)
+    eel.sync_files()
 
 
 @eel.expose
@@ -81,6 +87,18 @@ def start_training(file_name, ratio, recordings, batch_size, epochs):
     batch_size = int(batch_size)
     epochs = int(epochs)
     eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs)
+
+
+@eel.expose
+def start_predicting(network_id, history_count, refresh_rate):
+    history_count = int(history_count)
+    refresh_rate = int(refresh_rate) / 1000.0
+    eel.spawn(predict_emg, network_id, history_count, refresh_rate)
+
+
+@eel.expose
+def stop_predicting():
+    stop_predicting_stream()
 
 
 eel.init('frontend')

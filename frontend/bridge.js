@@ -45,29 +45,20 @@ function sync_files() {
       saveList.map((save) => save.slice(0, -4))
     );
     syncSelect("networks", networkList);
+    syncSelect("evaluate-network", networkList);
+    syncTabs();
   });
 }
 
-const tloss = document.getElementById("t-loss");
-const tacc = document.getElementById("t-acc");
-const tvloss = document.getElementById("t-vloss");
-const tvacc = document.getElementById("t-vacc");
-const vloss = document.getElementById("v-loss");
-const vacc = document.getElementById("v-acc");
-const progress = document.getElementById("train-progress");
 function train_progress(epoch, loss, accuracy, val_loss, val_accuracy) {
-  const epochs = document.getElementById("epochs").value;
-  if (epoch == "train") {
-    vloss.textContent = loss.toFixed(3);
-    vacc.textContent = `${(accuracy * 100).toFixed(3)}%`;
-  } else {
-    tloss.textContent = loss.toFixed(3);
-    tacc.textContent = `${(accuracy * 100).toFixed(3)}%`;
-    tvloss.textContent = val_loss.toFixed(3);
-    tvacc.textContent = `${(val_accuracy * 100).toFixed(3)}%`;
-    progress.style.width = `${((epoch + 1) / epochs) * 100}%`;
-    progress.textContent = `${epoch + 1}/${epochs}`;
-  }
+  setTraining(epoch, loss, accuracy, val_loss, val_accuracy);
+}
+
+function update_prediction(prediction, history) {
+  const predictedWord = document.getElementById("evaluated-word");
+  predictedWord.innerText = parseWord(prediction, false);
+  history.map((word) => parseWord(word, false));
+  setPredictionHistory(history);
 }
 
 eel.expose(log);
@@ -78,3 +69,4 @@ eel.expose(set_ports);
 eel.expose(sync_files);
 eel.expose(record_step);
 eel.expose(train_progress);
+eel.expose(update_prediction);

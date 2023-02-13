@@ -8,71 +8,80 @@ const colors = [
   "#a55fdf",
   "#df5faa",
 ];
-const charts = [];
+let charts = [];
 
 // EMG Charts
-for (let idx = 0; idx < 8; idx++) {
-  const ctx = document.getElementById(`stream-${idx + 1}`);
+function newCharts() {
+  console.log("Creating charts");
+  if (charts) charts.forEach((chart) => chart.destroy());
+  charts = [];
+  for (let idx = 0; idx < 8; idx++) {
+    const ctx = document.getElementById(`stream-${idx + 1}`);
 
-  const chart = new Chart(ctx, {
-    type: "line",
-    data: {
-      datasets: [
-        {
-          data: [],
-          borderWidth: 2,
-          backgroundColor: colors[idx],
-          borderColor: colors[idx],
-        },
-      ],
-    },
-    options: {
-      indexAxis: "x",
-      showLine: true,
-      animation: false,
-      parsing: false,
-      normalized: true,
-      maintainAspectRatio: false,
-      responsive: true,
-      plugins: {
-        decimation: {
-          algorithm: "lttb",
-          samples: 500,
-          threshold: 500,
-          enabled: true,
-        },
-        legend: { display: false },
-        tooltips: { enabled: false },
+    const chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            data: [],
+            borderWidth: 2,
+            backgroundColor: colors[idx],
+            borderColor: colors[idx],
+          },
+        ],
       },
-      elements: { point: { radius: 0 } },
-      scales: {
-        x: {
-          type: "linear",
-          beginAtZero: true,
-          min: 0,
-          max: 2499,
-          ticks: { display: false },
+      options: {
+        indexAxis: "x",
+        showLine: true,
+        animation: false,
+        parsing: false,
+        normalized: true,
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+          decimation: {
+            algorithm: "lttb",
+            samples: 500,
+            threshold: 500,
+            enabled: true,
+          },
+          legend: { display: false },
+          tooltips: { enabled: false },
         },
-        y: {
-          ticks: { display: false },
-          beginAtZero: true,
-          min: -3000,
-          max: 3000,
+        elements: { point: { radius: 0 } },
+        scales: {
+          x: {
+            type: "linear",
+            beginAtZero: true,
+            min: 0,
+            max: 2499,
+            ticks: { display: false },
+          },
+          y: {
+            ticks: { display: false },
+            beginAtZero: true,
+            min: -3000,
+            max: 3000,
+          },
         },
       },
-    },
-  });
+    });
 
-  ctx.addEventListener("wheel", (event) => {
-    const delta = Math.sign(event.deltaY);
-    zoom(chart, delta);
-    event.preventDefault();
-  });
+    ctx.addEventListener("wheel", (event) => {
+      const delta = Math.sign(event.deltaY);
+      zoom(chart, delta);
+      event.preventDefault();
+    });
 
-  charts.push(chart);
+    charts.push(chart);
+  }
 }
 
+newCharts();
+let lastDataLength = 0;
 function addToCharts(data) {
+  if (data[0].length < lastDataLength) newCharts();
+  lastDataLength = data[0].length;
   for (let idx = 0; idx < 8; idx++) {
     curve = [];
     for (let i = 0; i < data[idx].length; i++) {
@@ -80,7 +89,7 @@ function addToCharts(data) {
       curve.push({ x: i, y: channelData });
     }
     charts[idx].data.datasets[0].data = curve;
-    charts[idx].update();
+    charts[idx].update("none");
   }
 }
 
@@ -106,6 +115,27 @@ function setState(state) {
     startBtn.style.display = "none";
     stopBtn.style.display = "initial";
   }
+  syncTabs();
+}
+
+function syncTabs() {
+  const state = document.getElementById("state").innerText;
+  const recordings = Array.from(document.getElementById("recordings").options);
+  const networks = Array.from(document.getElementById("networks").options);
+  const emgTab = document.getElementById("emg-tab");
+  const recordingTab = document.getElementById("recording-tab");
+  const networkTab = document.getElementById("network-tab");
+  const evaluatorTab = document.getElementById("evaluator-tab");
+  enableTabIf(recordingTab, state == "Running");
+  enableTabIf(networkTab, recordings.length >= 1);
+  enableTabIf(evaluatorTab, state == "Running" && networks.length >= 1);
+  const activeTab = document.querySelector(".nav-link.active");
+  if (activeTab.classList.contains("disabled")) emgTab.click();
+}
+
+function enableTabIf(tab, condition) {
+  if (condition) tab.classList.remove("disabled");
+  else tab.classList.add("disabled");
 }
 
 // Action buttons
@@ -146,49 +176,72 @@ function startRecording() {
   const saveasrec = document.getElementById("saveasrec").value;
   const includeSilence = document.getElementById("includeSilence").checked;
   const includeFallback = document.getElementById("includeFallback").checked;
-  const words = Array.from(document.getElementById("lang").options).map(e => e.text)
-  eel.start_recording(saveasrec, wps, period, includeSilence, includeFallback, words)
+  const words = Array.from(document.getElementById("lang").options).map(
+    (e) => e.text
+  );
+  eel.start_recording(
+    saveasrec,
+    wps,
+    period,
+    includeSilence,
+    includeFallback,
+    words
+  );
 }
 
 function setRecording(loopCount, totalLoops) {
   const active = loopCount != totalLoops;
   loopCount += 1;
-  document.getElementById("window-recording").style.setProperty("display", active ? "flex" : "none", "important")
-  document.getElementById("window-main").style.setProperty("display", active ? "none" : "block", "important")
-  document.getElementById("progress").style.setProperty("--progress", loopCount/totalLoops)
-  document.getElementById("percentage").innerText = Math.trunc(loopCount/totalLoops*100)
+  document
+    .getElementById("window-recording")
+    .style.setProperty("display", active ? "flex" : "none", "important");
+  document
+    .getElementById("window-main")
+    .style.setProperty("display", active ? "none" : "block", "important");
+  document
+    .getElementById("progress")
+    .style.setProperty("--progress", loopCount / totalLoops);
+  document.getElementById("percentage").innerText = Math.trunc(
+    (loopCount / totalLoops) * 100
+  );
 }
 
-function parseWord(word) {
-  const fallbacks = Array.from(document.getElementById("fallbacks").options).map(e => e.text);
+function parseWord(word, renderFallback = true) {
+  const fallbacks = Array.from(
+    document.getElementById("fallbacks").options
+  ).map((e) => e.text);
 
   if (word == "$PREPARE") return prepare();
   else if (word == "$SILENCE") return " ";
-  else if (word == "$FALLBACK") return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  else if (renderFallback && word == "$FALLBACK")
+    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  else if (word == "$FALLBACK") return "<fallback>";
   else return word;
 }
 
 function prepare() {
-  setTimeout(() => document.getElementById("percentage").innerText = "3", 0000)
-  setTimeout(() => document.getElementById("percentage").innerText = "2", 1000)
-  setTimeout(() => document.getElementById("percentage").innerText = "1", 2000)
+  const percentage = document.getElementById("percentage");
+  setTimeout(() => (percentage.innerText = "3"), 0000);
+  setTimeout(() => (percentage.innerText = "2"), 1000);
+  setTimeout(() => (percentage.innerText = "1"), 2000);
   return "Prepare...";
 }
 
 function showFallbacks(checkbox) {
-  const active = checkbox.checked
-  if (active) document.getElementById("fallbacks-section").classList.remove("d-none")
-  else document.getElementById("fallbacks-section").classList.add("d-none")
+  const active = checkbox.checked;
+  if (active)
+    document.getElementById("fallbacks-section").classList.remove("d-none");
+  else document.getElementById("fallbacks-section").classList.add("d-none");
 }
 
 function syncSelect(selectId, list) {
   const select = document.getElementById(selectId);
   const options = Array.from(select.options);
-  const existing = options.map(option => option.value);
-  const toAdd = list.filter(el => !existing.includes(el));
-  const toRemove = options.filter(option => !list.includes(option.value));
-  toAdd.forEach(el => select.add(new Option(el, el)));
-  toRemove.forEach(option => select.removeChild(option));
+  const existing = options.map((option) => option.value);
+  const toAdd = list.filter((el) => !existing.includes(el));
+  const toRemove = options.filter((option) => !list.includes(option.value));
+  toAdd.forEach((el) => select.add(new Option(el, el)));
+  toRemove.forEach((option) => select.removeChild(option));
 }
 
 function startTraining() {
@@ -197,14 +250,82 @@ function startTraining() {
   const batch_size = document.getElementById("batch_size").value;
   const epochs = document.getElementById("epochs").value;
   const options = document.getElementById("included").options;
-  const includedRecords = Array.from(options).map(option => option.value);
+  const includedRecords = Array.from(options).map((option) => option.value);
+  if (!includedRecords.length) return;
+  document.getElementById("train-btn").disabled = true;
 
-  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs)
+  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs);
+}
+
+const tloss = document.getElementById("t-loss");
+const tacc = document.getElementById("t-acc");
+const tvloss = document.getElementById("t-vloss");
+const tvacc = document.getElementById("t-vacc");
+const vloss = document.getElementById("v-loss");
+const vacc = document.getElementById("v-acc");
+const progress = document.getElementById("train-progress");
+
+function setTraining(epoch, loss, accuracy, val_loss, val_accuracy) {
+  const epochs = document.getElementById("epochs").value;
+  if (epoch == "train") {
+    vloss.textContent = loss.toFixed(3);
+    vacc.textContent = `${(accuracy * 100).toFixed(3)}%`;
+  } else {
+    tloss.textContent = loss.toFixed(3);
+    tacc.textContent = `${(accuracy * 100).toFixed(3)}%`;
+    tvloss.textContent = val_loss.toFixed(3);
+    tvacc.textContent = `${(val_accuracy * 100).toFixed(3)}%`;
+    progress.style.width = `${((epoch + 1) / epochs) * 100}%`;
+    progress.textContent = `${epoch + 1}/${epochs}`;
+  }
+  if (epoch + 1 == epochs)
+    document.getElementById("train-btn").disabled = false;
+}
+
+function toggleEvaluation() {
+  const networkId = document.getElementById("evaluate-network").value;
+  const historyCount = document.getElementById("history-count").value;
+  const refreshRate = document.getElementById("refresh-rate").value;
+  const startPredictingBtn = document.getElementById("predict-btn");
+  if (startPredictingBtn.innerText.includes("Start")) {
+    eel.start_predicting(networkId, historyCount, refreshRate);
+    startPredictingBtn.classList.remove("btn-success");
+    startPredictingBtn.classList.add("btn-danger");
+    startPredictingBtn.innerText = "Stop predicting";
+  } else {
+    eel.stop_predicting();
+    startPredictingBtn.classList.remove("btn-danger");
+    startPredictingBtn.classList.add("btn-success");
+    startPredictingBtn.innerText = "Start classification stream";
+  }
+}
+
+let historyTbody = document.getElementById("evaluated-history");
+function setPredictionHistory(history) {
+  const tbody = document.createElement("tbody");
+  history.forEach((row, index) => {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    const td = document.createElement("td");
+    th.scope = "row";
+    th.innerText = index + 1;
+    td.innerText = row;
+    tr.appendChild(th);
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  });
+
+  historyTbody.parentElement.replaceChild(tbody, historyTbody);
+  historyTbody = tbody;
 }
 
 // Bootstrap
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+const tooltipTriggerList = document.querySelectorAll(
+  '[data-bs-toggle="tooltip"]'
+);
+const tooltipList = [...tooltipTriggerList].map(
+  (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
+);
 
 // Eel Bridge setup
 eel.setup();

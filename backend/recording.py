@@ -1,4 +1,4 @@
-from backend.cyton_stream import get_board_data, limit_channels
+from backend.cyton_stream import get_board_data, limit_channels, set_save_resources
 from brainflow.data_filter import DataFilter
 import pandas as pd
 import random as rd
@@ -19,6 +19,7 @@ def record_stream(saveasrec, wps, period, include_silence, include_fallback, wor
     words.append("$FALLBACK") if include_fallback else None
     words.append("$SILENCE") if include_silence else None
     eel.record_step("$PREPARE", -1, total_loops)
+    set_save_resources(True)
     eel.sleep(3)
     get_board_data()
 
@@ -33,6 +34,7 @@ def record_stream(saveasrec, wps, period, include_silence, include_fallback, wor
         eel.sleep(timeout)
 
     data = get_board_data()
+    set_save_resources(False)
     eel.record_step("$END", loop_count, total_loops)
     transposed_data = np.transpose(limit_channels(data))
     word_history = np.transpose(word_history)

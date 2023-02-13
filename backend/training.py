@@ -13,11 +13,11 @@ import string
 import eel
 
 
-def train_data(file_name, ratio, recordings, batch_size, epochs):
-    if not file_name:
-        file_name = ''.join(rd.choice(string.ascii_uppercase)
-                            for i in range(10))
-    eel.log("Start new network (%s) training" % (file_name))
+def train_data(network_id, ratio, recordings, batch_size, epochs):
+    if not network_id:
+        network_id = ''.join(rd.choice(string.ascii_uppercase)
+                             for i in range(10))
+    eel.log("Start new network (%s) training" % (network_id))
     emg_words = []
     emg_data = []
     columns = ['Channel_{}'.format(x) for x in range(1, 9)]
@@ -83,11 +83,11 @@ def train_data(file_name, ratio, recordings, batch_size, epochs):
         epochs=epochs, verbose=0, callbacks=[ProgressCallback()], shuffle=True)
 
     # Save network + words (answers) + sampling rate
-    model.save("dist/networks/%s" % (file_name))
+    model.save("dist/networks/%s" % (network_id))
     pd.DataFrame(words_map, columns=["Word"]).to_csv(
-        "dist/networks/%s/words.csv" % (file_name))
-    f = open("dist/networks/%s/samples" % (file_name), "w")
-    f.write(samples)
+        "dist/networks/%s/words.csv" % (network_id))
+    f = open("dist/networks/%s/samples" % (network_id), "w")
+    f.write("%s" % (samples))
     f.close()
     eel.sync_files()
 

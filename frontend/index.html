@@ -55,15 +55,15 @@
           role="tab" aria-controls="emg-tab-pane" aria-selected="true">EMG</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="recording-tab" data-bs-toggle="tab" data-bs-target="#recording-tab-pane"
+        <button class="nav-link disabled" id="recording-tab" data-bs-toggle="tab" data-bs-target="#recording-tab-pane"
           type="button" role="tab" aria-controls="recording-tab-pane" aria-selected="false">Recordings</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane" type="button"
-          role="tab" aria-controls="network-tab-pane" aria-selected="false">Neural Network</button>
+        <button class="nav-link disabled" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane"
+          type="button" role="tab" aria-controls="network-tab-pane" aria-selected="false">Neural Network</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="evaluator-tab" data-bs-toggle="tab" data-bs-target="#evaluator-tab-pane"
+        <button class="nav-link disabled" id="evaluator-tab" data-bs-toggle="tab" data-bs-target="#evaluator-tab-pane"
           type="button" role="tab" aria-controls="evaluator-tab-pane" aria-selected="false">Evaluator</button>
       </li>
     </ul>
@@ -271,7 +271,8 @@
                   <div id="trainingratio-percent" class="col col-1 text-end">90%</div>
                 </div>
               </div>
-              <button onclick="startTraining()" type="button" class="float-end btn btn-primary">Start training</button>
+              <button id="train-btn" onclick="startTraining()" type="button" class="float-end btn btn-primary">Start
+                training</button>
             </form>
           </div>
           <div class="col">
@@ -316,15 +317,33 @@
             <form class="ps-4">
               <label for="evaluate-network" class="form-label">Network ID</label>
               <select class="mb-3 form-select" name="evaluate-network" id="evaluate-network"> </select>
-              <button onclick="startEvaluation()" type="button" class="float-end btn btn-primary">Start classification
-                stream</button>
+              <label for="history-count" class="form-label">History count</label>
+              <input type="number" min="1" max="100" class="mb-3 form-control" name="history-count" id="history-count"
+                value="10" />
+              <label for="refresh-rate" class="form-label">Refresh rate (ms)</label>
+              <input type="number" min="1" max="1000" class="mb-3 form-control" name="refresh-rate" id="refresh-rate"
+                value="50" />
+              <button onclick="toggleEvaluation()" type="button" class="float-end btn btn-success"
+                id="predict-btn">Start classification stream</button>
             </form>
           </div>
           <div class="col">
             <div class="mb-3">
-              <h3 class="text-start ps-4 mb-3">Evaluation</h3>
-              <div class="ps-4">
+              <h3 class="text-start ps-4 mb-3">Predicting</h3>
+              <div class="ps-4 mb-3">
                 <div id="evaluated-word" class="text-center"></div>
+              </div>
+              <h3 class="text-start ps-4 mb-3">History</h3>
+              <div class="ps-4">
+                <table class="table mt-3">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th scope="col" class="col-sm-2">#</th>
+                      <th scope="col">Word</th>
+                    </tr>
+                  </thead>
+                  <tbody id="evaluated-history"> </tbody>
+                </table>
               </div>
             </div>
           </div>
