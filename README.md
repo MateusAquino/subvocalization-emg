@@ -15,7 +15,7 @@
   <a aria-label="Tensorflow (keras) version" href="https://www.tensorflow.org/api_docs/python/tf/keras">
     <img src="https://img.shields.io/badge/tensorflow-2.11.0-informational?logo=Tensorflow"></img>
   </a>
-  <a aria-label="Papers (coming soon)" href="./Proof%20of%20Concept.ipynb">
+  <a aria-label="Proof of Concept" href="./Proof%20of%20Concept/Complete%20processing.ipynb">
     <img src="https://img.shields.io/badge/jupyter-PoC-success?logo=Jupyter"></img>
   </a>
   <a aria-label="Papers (coming soon)" href="#">
@@ -43,10 +43,16 @@ This project requires setting up a [Cyton Biosensing Board (8-Channels)](https:/
 
 This project also allows using the Synthetic board as a mock to the Cyton board. However, as it generates random data, training and validation of the Neural Networks with the `Synthetic` option will not work.
 
+## :warning: Important
+
+This study is currently underway, and as such, the findings outlined in this article are preliminary and subject to change. The ongoing development phase of the project means that its present iteration is intended solely for research purposes. If you're interested, you can explore the progress in the [Papers](#-papers) section (Portuguese).
+
 ## 🚀 Setup
 After setting up your Cyton Board, you'll need to install the package dependencies:
 
 ```bash
+python -m venv .venv # optional: install requirements into a virtual env
+source .venv/bin/activate # optional: activate virtual env
 pip install -r requirements.txt
 ```
 
@@ -56,7 +62,7 @@ Once you're done simply run:
 python ./start.py
 ```
 
-It should be accessible at [`localhost:8000`](http://localhost:8000). In case the Cyton dongle is not available you might need to run with administrator privileges.
+It should be accessible at [`localhost:8000`](http://localhost:8000). In case the Cyton dongle is not available **you might need to run with administrator privileges**.
 
 ## 🧠 How to use
 
@@ -73,12 +79,30 @@ Neural Network Tab         | Evaluator Tab
 ![Neural Network Tab](https://user-images.githubusercontent.com/16140783/218360970-d672cc7c-84f6-45b2-b0d8-07ab01c3c57f.png)  |  ![Evaluator Tab](https://user-images.githubusercontent.com/16140783/218363114-6beeef22-7dee-4b15-8b75-3813ef2cd1fe.png)
 
 ## 📻 Proof of Concept (PoC)
-The PoC containing the steps of processing and training can be accessed by [Proof of Concept.ipynb](./Proof%20of%20Concept.ipynb). This Jupyter Notebook has all the important pieces of code to reproduce the experiment, and also some visual graphs for a better understanding.
+The PoC containing the steps of processing and training can be accessed by [Complete processing.ipynb](./Proof%20of%20Concept/Complete%20processing.ipynb). This Jupyter Notebook has all the important pieces of code to reproduce the experiment, and also some visual graphs for a better understanding.
 
 Synthetic 8-Channels Input | Words visualization
 :-------------------------:|:-------------------------:
 ![Synthetic 8-Channels Input](https://user-images.githubusercontent.com/16140783/218466330-a7a2dcd3-b697-4bd3-943f-6236011e74d7.png)  |  ![Words visualization](https://user-images.githubusercontent.com/16140783/218466062-cf9fd2a4-2335-4acd-87df-b1b78e89fd98.png)
 
+If you want to see the PoC with public EMG data instead, you can check [Public data.ipynb](./Proof%20of%20Concept/Public%20data.ipynb), processing a public [EMG hand gesture dataset](https://zenodo.org/record/7668251).
+
+Also, if you want to run the ipynb notebook in a virtualenv, make sure you setup jupyter correctly:
+
+```bash
+source .venv/bin/activate
+python -m pip install ipykernel # install ipykernel / jupyter in the venv if not present
+python -m ipykernel install --user --name=venv # self-install
+# > Then, open Jupyter Notebook and select venv in "Switch kernel" option
+```
+
+## 📚 Papers
+
+- [x] [**_Desenvolvimento de um software para gravação e processamento de dados de eletromiografia para reconhecimento de comandos e termos_**](https://ctic.univap.br/ctic/qualivitae/resumos/anais_qualivitae_2023.pdf#page=28):
+  - This paper was showcased during the [XXII Congresso Saúde e Qualidade de Vida - Qualivitae](https://ctic.univap.br/ctic/qualivitae/index.php) (2023), marking the initial phase of our research. The primary objective of this phase was the creation of a customizable backend and frontend capable of capturing and analyzing EMG data. It's important to note that this paper exclusively employed synthetic data; no human data was involved in this particular study.
+- [ ] **WIP**: **_Desenvolvimento de uma interface de fala silenciosa utilizando deep learning e emg no processamento de subvocalização_**
+  - This paper is currently in progress and is scheduled for presentation at the [XXVII Encontro Latino Americano de Iniciação Científica](https://www.inicepg.univap.br/home). The main objective of this endeavor is to employ the identical processing algorithms and neural network that were developed during the previous research, this time using publicly available EMG data.
+- [ ] **TODO**: This marks the concluding phase of our research, which will be submitted to a journal by the conclusion of this year. For this stage, we will involve human participants and share the electrodes placement, as we have already obtained approval from Brazil's Ethics Committee (CAAE: 65587722.5.0000.5503, Parecer 6112574).
 
 ## 📜 License
 All source code is made available under a BSD 3-clause license. You can freely use and modify the code, without warranty, so long as you provide attribution to the author. See [LICENSE](./LICENSE) for the full license text.
