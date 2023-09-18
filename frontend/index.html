@@ -323,6 +323,14 @@
               <label for="refresh-rate" class="form-label">Refresh rate (ms)</label>
               <input type="number" min="1" max="1000" class="mb-3 form-control" name="refresh-rate" id="refresh-rate"
                 value="50" />
+              <input onchange="toggleSynthetize(this.checked)" type="checkbox" class="mb-3 form-check-input"
+                name="synth-voice" id="synth-voice" />
+              <label for="synth-voice" class="form-label">Synth voice</label>
+              <br />
+              <input onchange="toggleKeyboard(this.checked)" type="checkbox" class="mb-3 form-check-input"
+                name="key-press" id="key-press" />
+              <label for="key-press" class="form-label">Simulate keypress</label>
+              <br />
               <button onclick="toggleEvaluation()" type="button" class="float-end btn btn-success"
                 id="predict-btn">Start classification stream</button>
             </form>

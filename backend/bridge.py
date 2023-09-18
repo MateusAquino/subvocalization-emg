@@ -2,6 +2,8 @@ from backend.cyton_stream import is_session_running, start_stream, stop_stream, 
 from backend.recording import record_stream
 from backend.training import train_data
 from backend.classifier import predict_emg, stop_predicting_stream
+from backend.synthesizer import speak
+from backend.keyboard import press
 from shutil import rmtree
 from os import walk, remove
 import glob
@@ -100,5 +102,12 @@ def start_predicting(network_id, history_count, refresh_rate):
 def stop_predicting():
     stop_predicting_stream()
 
+@eel.expose
+def synthetize(text):
+    eel.spawn(speak, text)
+
+@eel.expose
+def press_key(key):
+    eel.spawn(press, key)
 
 eel.init('frontend')

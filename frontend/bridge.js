@@ -54,9 +54,14 @@ function train_progress(epoch, loss, accuracy, val_loss, val_accuracy) {
   setTraining(epoch, loss, accuracy, val_loss, val_accuracy);
 }
 
+let lastPrediction = "";
 function update_prediction(prediction, history) {
   const predictedWord = document.getElementById("evaluated-word");
-  predictedWord.innerText = parseWord(prediction, false);
+  const word = parseWord(prediction, false);
+  if (synthetizing && lastPrediction != word) eel.synthetize(word);
+  if (keyboardPress && lastPrediction != word) eel.press_key(word);
+  lastPrediction = word;
+  predictedWord.innerText = word;
   history.map((word) => parseWord(word, false));
   setPredictionHistory(history);
 }

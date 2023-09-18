@@ -97,3 +97,13 @@ function deleteFromList(selector) {
     select.removeChild(option);
   });
 }
+
+var synthetizing = false;
+function toggleSynthetize(value) {
+  synthetizing = value;
+}
+
+var keyboardPress = false;
+function toggleKeyboard(value) {
+  keyboardPress = value;
+}
