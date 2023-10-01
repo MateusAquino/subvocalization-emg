@@ -16,7 +16,11 @@ def predict_emg(network_id, history_count, refresh_rate):
     words = pd.read_csv("dist/networks/%s/words.csv" % (network_id))
     f = open("dist/networks/%s/samples" % (network_id), "r")
     sampling_rate = int(f.read())
-    exg_channels = BoardShim.get_exg_channels(BoardIds.CYTON_BOARD)
+    f.close()
+    f = open("dist/networks/%s/channels" % (network_id), "r")
+    channels = int(f.read())
+    f.close()
+    exg_channels = [*range(1, channels+1)]
     last_predictions = []
     while (predicting):
         emg_data = get_current_board_data(sampling_rate)

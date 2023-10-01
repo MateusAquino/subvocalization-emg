@@ -1,5 +1,5 @@
 from backend.cyton_stream import is_session_running, start_stream, stop_stream, set_save_resources
-from backend.recording import record_stream
+from backend.recording import record_stream, stop_recording_stream
 from backend.training import train_data
 from backend.classifier import predict_emg, stop_predicting_stream
 from backend.synthesizer import speak
@@ -51,11 +51,14 @@ def update_ports():
 
 
 @eel.expose
-def start_recording(saveasrec, wps, period, silence, fallback, words):
-    wps = int(wps)
+def start_recording(saveasrec, wpm, period, one_stream, silence, fallback, words):
+    wpm = int(wpm)
     period = int(period)
-    eel.spawn(record_stream, saveasrec, wps, period, silence, fallback, words)
+    eel.spawn(record_stream, saveasrec, wpm, period, one_stream, silence, fallback, words)
 
+@eel.expose
+def stop_recording():
+  eel.spawn(stop_recording_stream)
 
 @eel.expose
 def list_saves():
@@ -84,11 +87,12 @@ def delete_network(network):
 
 
 @eel.expose
-def start_training(file_name, ratio, recordings, batch_size, epochs):
+def start_training(file_name, ratio, recordings, batch_size, epochs, channels):
     ratio = int(ratio)
     batch_size = int(batch_size)
     epochs = int(epochs)
-    eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs)
+    channels = int(channels)
+    eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs, channels)
 
 
 @eel.expose

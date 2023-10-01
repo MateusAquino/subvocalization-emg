@@ -6,15 +6,26 @@ import numpy as np
 import string
 import eel
 
+loop_count = 0
+total_loops = 0
 
-def record_stream(saveasrec, wps, period, include_silence, include_fallback, words):
+def stop_recording_stream():
+    global loop_count
+    global total_loops
+    loop_count = total_loops
+
+
+def record_stream(saveasrec, wpm, period, one_stream, include_silence, include_fallback, words):
+    global loop_count
+    global total_loops
     if not saveasrec:
         saveasrec = ''.join(rd.choice(string.ascii_uppercase)
                             for i in range(10))
+    saveasrec = saveasrec + '_1S' if one_stream else saveasrec
     last_word = None
     loop_count = 0
-    total_loops = period * wps
-    timeout = 1/wps
+    total_loops = period * wpm/60
+    timeout = 60/wpm
     word_history = []
     words.append("$FALLBACK") if include_fallback else None
     words.append("$SILENCE") if include_silence else None
@@ -25,7 +36,7 @@ def record_stream(saveasrec, wps, period, include_silence, include_fallback, wor
 
     # Display random word
     while loop_count < total_loops:
-        word = random_word(words, last_word)
+        word = current_word(words, loop_count, total_loops) if one_stream else random_word(words, last_word)
         word_history.append(word)
         last_word = word
         eel.record_step(word, loop_count, total_loops)
@@ -52,6 +63,10 @@ def record_stream(saveasrec, wps, period, include_silence, include_fallback, wor
     eel.log("Saved as %s.csv" % (saveasrec))
     eel.sync_files()
 
+
+def current_word(words, loop_count, total_loops):
+    word_index = int(loop_count / total_loops * len(words))
+    return words[word_index]
 
 def random_word(words, last_word):
     word = rd.choice(words)

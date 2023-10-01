@@ -102,7 +102,7 @@ def preprocess(data, board_id, exg_channels):
     sampling_rate = BoardShim.get_sampling_rate(board_id)
     if data.size == 0:
         return data
-    curves = [None] * 8
+    curves = [None] * len(exg_channels)
     for count, channel in enumerate(exg_channels):
         if count >= 8:
             continue

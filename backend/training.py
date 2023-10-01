@@ -13,14 +13,14 @@ import string
 import eel
 
 
-def train_data(network_id, ratio, recordings, batch_size, epochs):
+def train_data(network_id, ratio, recordings, batch_size, epochs, channels):
     if not network_id:
         network_id = ''.join(rd.choice(string.ascii_uppercase)
                              for i in range(10))
     eel.log("Start new network (%s) training" % (network_id))
     emg_words = []
     emg_data = []
-    columns = ['Channel_{}'.format(x) for x in range(1, 9)]
+    columns = ['Channel_{}'.format(x) for x in range(1, channels+1)]
 
     for save in recordings:
         restored_df = pd.read_csv("dist/saves/%s.csv" % (save))
@@ -43,6 +43,11 @@ def train_data(network_id, ratio, recordings, batch_size, epochs):
         emg_words.append(word)
         emg_data.append(data)
 
+    # Separate data into lower windows when one stream mode
+    one_stream = save.endswith("_1S")
+    if one_stream:
+        emg_words, emg_data = separate_data(emg_words, emg_data)
+        
     # Get minimum length of emg_data to make all data the same length
     samples = min([len(x) for x in emg_data])
     data_reduced = [x[:samples] for x in emg_data]
@@ -59,7 +64,7 @@ def train_data(network_id, ratio, recordings, batch_size, epochs):
     # Build Model
     model = Sequential()
     model.add(Conv1D(40, 10, strides=2, padding='same',
-              activation='relu', input_shape=(samples, 8)))
+              activation='relu', input_shape=(samples, channels)))
     model.add(Dropout(0.2))
     model.add(MaxPooling1D(3))
     model.add(GlobalAveragePooling1D())
@@ -81,8 +86,24 @@ def train_data(network_id, ratio, recordings, batch_size, epochs):
     f = open("dist/networks/%s/samples" % (network_id), "w")
     f.write("%s" % (samples))
     f.close()
+    f = open("dist/networks/%s/channels" % (network_id), "w")
+    f.write("%s" % (channels))
+    f.close()
     eel.sync_files()
 
+def separate_data(emg_words, emg_data):
+    new_words = []
+    new_data = []
+    window_size = 200
+    for i in range(len(emg_words)):
+        word = emg_words[i]
+        data = emg_data[i]
+        for j in range(0, len(data), window_size):
+            new_words.append(word)
+            new_data.append(data[j:j+window_size])
+        print(len(new_data[i]))
+    print(new_words)
+    return new_words, new_data
 
 class ProgressCallback(Callback):
     def on_test_end(self, logs=None):

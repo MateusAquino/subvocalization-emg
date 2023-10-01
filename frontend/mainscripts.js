@@ -59,9 +59,8 @@ function newCharts() {
           },
           y: {
             ticks: { display: false },
-            beginAtZero: true,
-            min: -3000,
-            max: 3000,
+            beginAtZero: false,
+            stacked: true,
           },
         },
       },
@@ -80,13 +79,14 @@ function newCharts() {
 newCharts();
 let lastDataLength = 0;
 function addToCharts(data) {
+  if (data[0].length < 15) return;
   if (data[0].length < lastDataLength) newCharts();
   lastDataLength = data[0].length;
   for (let idx = 0; idx < 8; idx++) {
     curve = [];
-    for (let i = 0; i < data[idx].length; i++) {
+    for (let i = 15; i < data[idx].length; i++) {
       channelData = data[idx][i];
-      curve.push({ x: i, y: channelData });
+      curve.push({ x: i-15, y: channelData });
     }
     charts[idx].data.datasets[0].data = curve;
     charts[idx].update("none");
@@ -171,9 +171,10 @@ function zoom(chart, delta) {
 }
 
 function startRecording() {
-  const wps = document.getElementById("wps").value;
+  const wpm = document.getElementById("wpm").value;
   const period = document.getElementById("period").value;
   const saveasrec = document.getElementById("saveasrec").value;
+  const oneStream = document.getElementById("oneStream").checked;
   const includeSilence = document.getElementById("includeSilence").checked;
   const includeFallback = document.getElementById("includeFallback").checked;
   const words = Array.from(document.getElementById("lang").options).map(
@@ -181,12 +182,17 @@ function startRecording() {
   );
   eel.start_recording(
     saveasrec,
-    wps,
+    wpm,
     period,
+    oneStream,
     includeSilence,
     includeFallback,
     words
   );
+}
+
+function stopRecording() {
+  eel.stop_recording();
 }
 
 function setRecording(loopCount, totalLoops) {
@@ -249,12 +255,13 @@ function startTraining() {
   const ratio = document.getElementById("trainingratio").value;
   const batch_size = document.getElementById("batch_size").value;
   const epochs = document.getElementById("epochs").value;
+  const channels = document.getElementById("channels").value;
   const options = document.getElementById("included").options;
   const includedRecords = Array.from(options).map((option) => option.value);
   if (!includedRecords.length) return;
   document.getElementById("train-btn").disabled = true;
 
-  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs);
+  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs, channels);
 }
 
 const tloss = document.getElementById("t-loss");
