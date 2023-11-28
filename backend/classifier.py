@@ -24,7 +24,7 @@ def predict_emg(network_id, history_count, refresh_rate):
     last_predictions = []
     while (predicting):
         emg_data = get_current_board_data(sampling_rate)
-        emg_data = preprocess(emg_data, BoardIds.CYTON_BOARD, exg_channels)
+        emg_data = preprocess(emg_data, BoardIds.CYTON_BOARD, exg_channels)[:channels,:]
         emg_data = np.transpose(emg_data).astype('float32')
         emg_data = np.expand_dims(emg_data, axis=0)
         prediction = model.predict(emg_data, verbose=0)

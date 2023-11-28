@@ -87,12 +87,13 @@ def delete_network(network):
 
 
 @eel.expose
-def start_training(file_name, ratio, recordings, batch_size, epochs, channels):
+def start_training(file_name, ratio, recordings, batch_size, epochs, channels, window_size):
     ratio = int(ratio)
     batch_size = int(batch_size)
     epochs = int(epochs)
     channels = int(channels)
-    eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs, channels)
+    window_size = int(window_size)
+    eel.spawn(train_data, file_name, ratio, recordings, batch_size, epochs, channels, window_size)
 
 
 @eel.expose

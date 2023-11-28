@@ -1,7 +1,6 @@
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 import pandas as pd
-import argparse
 import logging
 import eel
 
@@ -102,21 +101,21 @@ def preprocess(data, board_id, exg_channels):
     sampling_rate = BoardShim.get_sampling_rate(board_id)
     if data.size == 0:
         return data
-    curves = [None] * len(exg_channels)
-    for count, channel in enumerate(exg_channels):
-        if count >= 8:
-            continue
+    for _count, channel in enumerate(exg_channels):
         channel_data = data[channel].to_numpy() if isinstance(
             data[channel], pd.Series) else data[channel]
         DataFilter.detrend(channel_data, DetrendOperations.CONSTANT.value)
-        DataFilter.perform_bandpass(channel_data, sampling_rate, 3.0, 45.0, 2,
-                                    FilterTypes.BUTTERWORTH.value, 0)
-        DataFilter.perform_bandstop(channel_data, sampling_rate, 48.0, 52.0, 2,
-                                    FilterTypes.BUTTERWORTH.value, 0)
-        DataFilter.perform_bandstop(channel_data, sampling_rate, 58.0, 62.0, 2,
-                                    FilterTypes.BUTTERWORTH.value, 0)
-        curves[count] = channel_data.tolist()
-    return curves
+        DataFilter.remove_environmental_noise(channel_data, sampling_rate, NoiseTypes.SIXTY.value)
+        # DataFilter.perform_bandpass(channel_data, sampling_rate, 1.3, 180.0, 4,
+        #                             FilterTypes.BUTTERWORTH.value, 0)
+        # DataFilter.perform_bandstop(channel_data, sampling_rate, 48.0, 52.0, 2,
+        #                             FilterTypes.BUTTERWORTH.value, 0)
+        # DataFilter.perform_bandstop(channel_data, sampling_rate, 58.0, 62.0, 2,
+        #                             FilterTypes.BUTTERWORTH.value, 0)
+    if isinstance(data[channel], pd.Series):
+      return data.drop(data.columns[0],axis=1).to_numpy()
+    return data
+
 
 
 def set_save_resources(flag):

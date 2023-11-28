@@ -1,395 +1,800 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="mainstyles.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+    <script type="text/javascript" src="./eel.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" type="text/css" href="mainstyles.css" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous" />
-  <script type="text/javascript" src="./eel.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
-</head>
-
-<body class="m-0">
-  <div id="window-recording" class="recording d-none align-items-center justify-content-center">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div style="display: contents">
-          <div id="reading"></div>
-          <div class="w-100 h-0"></div>
-          <div id="progress" class="pie-wrapper">
-            <span class="label"><span id="percentage">0</span><span class="smaller">%</span></span>
+  <body class="m-0">
+    <div
+      id="window-recording"
+      class="recording d-none align-items-center justify-content-center"
+    >
+      <div class="container">
+        <div class="row justify-content-center">
+          <div style="display: contents">
+            <div id="reading"></div>
+            <div class="w-100 h-0"></div>
+            <div id="progress" class="pie-wrapper">
+              <span class="label"
+                ><span id="percentage">0</span
+                ><span class="smaller">%</span></span
+              >
+            </div>
+            <div class="w-100 h-0"></div>
+            <button
+              style="height: 25px; font-size: 0.6rem"
+              onclick="stopRecording()"
+              type="button"
+              class="float-end btn btn-dark"
+            >
+              STOP
+            </button>
           </div>
-          <div class="w-100 h-0"></div>
-          <button style="height: 25px; font-size: 0.6rem;" onclick="stopRecording()" type="button" class="float-end btn btn-dark">STOP</button>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="window-main" class="container text-center">
-    <h1 class="mt-5">Subvocalization</h1>
-    <div class="row mt-3">
-      <div class="col">
-        <input class="form-control w-50 d-inline me-2" type="text" name="port" id="port" placeholder="Port" list="ports"
-          autocomplete="off" onfocus="eel.update_ports()" />
-        <button class="btn btn-primary" id="startBtn" style="display: none" onclick="startSession()">
-          <span id="startingSpinner" style="display: none" class="me-1 spinner-grow spinner-grow-sm" role="status"
-            aria-hidden="true"></span>
-          Start session
-        </button>
-        <button class="btn btn-primary" id="stopBtn" style="display: none" onclick="stopSession()">
-          Stop session
-        </button>
+    <div id="window-main" class="container text-center">
+      <h1 class="mt-5">Subvocalization</h1>
+      <div class="row mt-3">
+        <div class="col">
+          <input
+            class="form-control w-50 d-inline me-2"
+            type="text"
+            name="port"
+            id="port"
+            placeholder="Port"
+            list="ports"
+            autocomplete="off"
+            onfocus="eel.update_ports()"
+          />
+          <button
+            class="btn btn-primary"
+            id="startBtn"
+            style="display: none"
+            onclick="startSession()"
+          >
+            <span
+              id="startingSpinner"
+              style="display: none"
+              class="me-1 spinner-grow spinner-grow-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Start session
+          </button>
+          <button
+            class="btn btn-primary"
+            id="stopBtn"
+            style="display: none"
+            onclick="stopSession()"
+          >
+            Stop session
+          </button>
+        </div>
+        <div class="col text-start">
+          <div>State: <span id="state">Idle</span></div>
+          <div>Error: <span id="error"></span></div>
+        </div>
       </div>
-      <div class="col text-start">
-        <div>State: <span id="state">Idle</span></div>
-        <div>Error: <span id="error"></span></div>
-      </div>
-    </div>
-    <ul class="mt-2 nav nav-tabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="emg-tab" data-bs-toggle="tab" data-bs-target="#emg-tab-pane" type="button"
-          role="tab" aria-controls="emg-tab-pane" aria-selected="true">EMG</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link disabled" id="recording-tab" data-bs-toggle="tab" data-bs-target="#recording-tab-pane"
-          type="button" role="tab" aria-controls="recording-tab-pane" aria-selected="false">Recordings</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link disabled" id="network-tab" data-bs-toggle="tab" data-bs-target="#network-tab-pane"
-          type="button" role="tab" aria-controls="network-tab-pane" aria-selected="false">Neural Network</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link disabled" id="evaluator-tab" data-bs-toggle="tab" data-bs-target="#evaluator-tab-pane"
-          type="button" role="tab" aria-controls="evaluator-tab-pane" aria-selected="false">Evaluator</button>
-      </li>
-    </ul>
-    <article class="mt-3 tab-content">
-      <div class="tab-pane fade show active" id="emg-tab-pane" role="tabpanel" aria-labelledby="emg-tab" tabindex="0">
-        <div class="row mt-2">
-          <div class="col align-items-center">
-            <h3 class="text-start ps-4 mb-3">
-              Time Series
-              <div class="d-none btn-group float-end mt-1" role="group" aria-label="Basic example">
-                <button onclick="zoomAll(-1)" type="button" class="btn btn-sm btn-outline-primary">
-                  -
-                </button>
-                <button onclick="zoomAll(0)" type="button" class="btn btn-sm btn-outline-primary">
-                  Reset
-                </button>
-                <button onclick="zoomAll(1)" type="button" class="btn btn-sm btn-outline-primary">
-                  +
-                </button>
+      <ul class="mt-2 nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="emg-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#emg-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="emg-tab-pane"
+            aria-selected="true"
+          >
+            EMG
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link disabled"
+            id="recording-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#recording-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="recording-tab-pane"
+            aria-selected="false"
+          >
+            Recordings
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link disabled"
+            id="network-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#network-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="network-tab-pane"
+            aria-selected="false"
+          >
+            Neural Network
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link disabled"
+            id="evaluator-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#evaluator-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="evaluator-tab-pane"
+            aria-selected="false"
+          >
+            Evaluator
+          </button>
+        </li>
+      </ul>
+      <article class="mt-3 tab-content">
+        <div
+          class="tab-pane fade show active"
+          id="emg-tab-pane"
+          role="tabpanel"
+          aria-labelledby="emg-tab"
+          tabindex="0"
+        >
+          <div class="row mt-2">
+            <div class="col align-items-center">
+              <h3 class="text-start ps-4 mb-3">
+                Time Series
+                <div
+                  class="d-none btn-group float-end mt-1"
+                  role="group"
+                  aria-label="Basic example"
+                >
+                  <button
+                    onclick="zoomAll(-1)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                  >
+                    -
+                  </button>
+                  <button
+                    onclick="zoomAll(0)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onclick="zoomAll(1)"
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                  >
+                    +
+                  </button>
+                </div>
+              </h3>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-1">1</span>
+                </div>
+                <div class="col"><canvas id="stream-1"></canvas></div>
               </div>
-            </h3>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-1">1</span></div>
-              <div class="col"><canvas id="stream-1"></canvas></div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-2">2</span>
+                </div>
+                <div class="col"><canvas id="stream-2"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-3">3</span>
+                </div>
+                <div class="col"><canvas id="stream-3"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-4">4</span>
+                </div>
+                <div class="col"><canvas id="stream-4"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-5">5</span>
+                </div>
+                <div class="col"><canvas id="stream-5"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-6">6</span>
+                </div>
+                <div class="col"><canvas id="stream-6"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-7">7</span>
+                </div>
+                <div class="col"><canvas id="stream-7"></canvas></div>
+              </div>
+              <div class="row align-items-center">
+                <div class="col-1">
+                  <span class="channel-number bg-8">8</span>
+                </div>
+                <div class="col"><canvas id="stream-8"></canvas></div>
+              </div>
             </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-2">2</span></div>
-              <div class="col"><canvas id="stream-2"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-3">3</span></div>
-              <div class="col"><canvas id="stream-3"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-4">4</span></div>
-              <div class="col"><canvas id="stream-4"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-5">5</span></div>
-              <div class="col"><canvas id="stream-5"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-6">6</span></div>
-              <div class="col"><canvas id="stream-6"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-7">7</span></div>
-              <div class="col"><canvas id="stream-7"></canvas></div>
-            </div>
-            <div class="row align-items-center">
-              <div class="col-1"><span class="channel-number bg-8">8</span></div>
-              <div class="col"><canvas id="stream-8"></canvas></div>
-            </div>
-          </div>
-          <div class="col align-items-center">
-            <h3 class="text-start px-4">Logs</h3>
-            <div class="row text-start mt-3 ps-4">
-              <div class="p-3 font-monospace" id="output"></div>
+            <div class="col align-items-center">
+              <h3 class="text-start px-4">Logs</h3>
+              <div class="row text-start mt-3 ps-4">
+                <div class="p-3 font-monospace" id="output"></div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="tab-pane fade text-start" id="recording-tab-pane" role="tabpanel" aria-labelledby="recording-tab"
-        tabindex="0">
-        <div class="row mt-2">
-          <div class="col align-items-center">
-            <h3 class="text-start ps-4 mb-3">Recording</h3>
-            <form class="ps-4">
-              <div class="mb-3">
-                <label for="saveasrec" class="form-label">Save as (ID)</label>
-                <input class="form-control" id="saveasrec">
-              </div>
-              <div class="mb-3">
-                <label for="wpm" class="form-label">Word p/ Minute (WPM)</label>
-                <input type="number" min="1" max="300" class="form-control" id="wpm" value="60">
-              </div>
-              <div class="mb-3">
-                <label for="period" class="form-label">Session period (seconds)</label>
-                <input type="number" min="1" max="300" class="form-control" id="period" value="300">
-              </div>
-              <div class="mb-3">
-                <label for="word" class="form-label">Words</label>
-                <select class="form-select" name="words" id="lang" multiple>
-                </select>
-                <div class="mt-2 input-group">
-                  <input id="word" type="text" class="form-control" placeholder="Word">
-                  <div class="input-group-append ms-1">
-                    <button id="add-word" class="btn btn-outline-secondary" type="button">Add</button>
-                    <button id="delete-word" class="btn btn-outline-secondary" type="button">Delete</button>
-                  </div>
-                </div>
-              </div>
-              <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="oneStream">
-                <label class="form-check-label" for="oneStream">Record as one stream</label>
-                <span data-bs-toggle="tooltip"
-                  data-bs-title="This option might be useful for fixed muscle activation recognition"
-                  class="info"></span>
-              </div>
-              <div class="mb-3 form-check">
-                <input checked type="checkbox" class="form-check-input" id="includeSilence">
-                <label class="form-check-label" for="includeSilence">Include silence</label>
-                <span data-bs-toggle="tooltip"
-                  data-bs-title="Add blank frames (without words) to include silence in the training"
-                  class="info"></span>
-              </div>
-              <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="includeFallback" onchange="showFallbacks(this)">
-                <label class="form-check-label" for="includeFallback">Include fallback</label>
-                <span data-bs-toggle="tooltip" data-bs-title="Add random words to include a fallback in the training"
-                  class="info"></span>
-              </div>
-              <div id="fallbacks-section" class="mb-3 d-none">
-                <label for="fallbacks" class="form-label">Fallbacks</label>
-                <select class="form-select" name="fallbacks" id="fallbacks" multiple>
-                  <option value="Talvez">Talvez</option>
-                  <option value="Caminhar">Caminhar</option>
-                  <option value="Sal">Sal</option>
-                  <option value="Aluna">Aluna</option>
-                  <option value="Escutar">Escutar</option>
-                </select>
-                <div class="mt-2 input-group">
-                  <input id="fallback" type="text" class="form-control" placeholder="Word">
-                  <div class="input-group-append ms-1">
-                    <button id="add-fallback" class="btn btn-outline-secondary" type="button">Add</button>
-                    <button id="delete-fallback" class="btn btn-outline-secondary" type="button">Delete</button>
-                  </div>
-                </div>
-              </div>
-              <button onclick="startRecording()" type="button" class="float-end btn btn-primary">Start
-                recording</button>
-            </form>
-          </div>
-          <div class="col">
-            <div class="mb-3">
-              <h3 class="text-start ps-4 mb-3">Saves</h3>
+        <div
+          class="tab-pane fade text-start"
+          id="recording-tab-pane"
+          role="tabpanel"
+          aria-labelledby="recording-tab"
+          tabindex="0"
+        >
+          <div class="row mt-2">
+            <div class="col align-items-center">
+              <h3 class="text-start ps-4 mb-3">Recording</h3>
               <form class="ps-4">
-                <label for="recordings" class="form-label">Recording IDs</label>
-                <select class="form-select" name="recordings" id="recordings" multiple> </select>
-                <div class="mt-2">
-                  <button id="delete-recording" class="btn btn-outline-secondary float-end"
-                    type="button">Delete</button>
+                <div class="mb-3">
+                  <label for="saveasrec" class="form-label">Save as (ID)</label>
+                  <input class="form-control" id="saveasrec" />
                 </div>
+                <div class="mb-3">
+                  <label for="wpm" class="form-label"
+                    >Word p/ Minute (WPM)</label
+                  >
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    class="form-control"
+                    id="wpm"
+                    value="80"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="period" class="form-label"
+                    >Session period (seconds)</label
+                  >
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    class="form-control"
+                    id="period"
+                    value="300"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="word" class="form-label">Words</label>
+                  <select
+                    class="form-select"
+                    name="words"
+                    id="lang"
+                    multiple
+                  ></select>
+                  <div class="mt-2 input-group">
+                    <input
+                      id="word"
+                      type="text"
+                      class="form-control"
+                      placeholder="Word"
+                    />
+                    <div class="input-group-append ms-1">
+                      <button
+                        id="add-word"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        Add
+                      </button>
+                      <button
+                        id="delete-word"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="mb-3 form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="oneStream"
+                  />
+                  <label class="form-check-label" for="oneStream"
+                    >Record as one stream</label
+                  >
+                  <span
+                    data-bs-toggle="tooltip"
+                    data-bs-title="If checked, all words will be recorded continuously"
+                    class="info"
+                  ></span>
+                </div>
+                <div class="mb-3 form-check">
+                  <input
+                    checked
+                    type="checkbox"
+                    class="form-check-input"
+                    id="includeSilence"
+                  />
+                  <label class="form-check-label" for="includeSilence"
+                    >Include silence</label
+                  >
+                  <span
+                    data-bs-toggle="tooltip"
+                    data-bs-title="Add blank frames (without words) to include silence in the training"
+                    class="info"
+                  ></span>
+                </div>
+                <div class="mb-3 form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="includeFallback"
+                    onchange="showFallbacks(this)"
+                  />
+                  <label class="form-check-label" for="includeFallback"
+                    >Include fallback</label
+                  >
+                  <span
+                    data-bs-toggle="tooltip"
+                    data-bs-title="Add random words to include a fallback in the training"
+                    class="info"
+                  ></span>
+                </div>
+                <div id="fallbacks-section" class="mb-3 d-none">
+                  <label for="fallbacks" class="form-label">Fallbacks</label>
+                  <select
+                    class="form-select"
+                    name="fallbacks"
+                    id="fallbacks"
+                    multiple
+                  >
+                    <option value="Talvez">Talvez</option>
+                    <option value="Caminhar">Caminhar</option>
+                    <option value="Sal">Sal</option>
+                    <option value="Aluna">Aluna</option>
+                    <option value="Escutar">Escutar</option>
+                  </select>
+                  <div class="mt-2 input-group">
+                    <input
+                      id="fallback"
+                      type="text"
+                      class="form-control"
+                      placeholder="Word"
+                    />
+                    <div class="input-group-append ms-1">
+                      <button
+                        id="add-fallback"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        Add
+                      </button>
+                      <button
+                        id="delete-fallback"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onclick="startRecording()"
+                  type="button"
+                  class="float-end btn btn-primary"
+                >
+                  Start recording
+                </button>
               </form>
             </div>
+            <div class="col">
+              <div class="mb-3">
+                <h3 class="text-start ps-4 mb-3">Saves</h3>
+                <form class="ps-4">
+                  <label for="recordings" class="form-label"
+                    >Recording IDs</label
+                  >
+                  <select
+                    class="form-select"
+                    name="recordings"
+                    id="recordings"
+                    multiple
+                  ></select>
+                  <div class="mt-2">
+                    <button
+                      id="delete-recording"
+                      class="btn btn-outline-secondary float-end"
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="tab-pane fade text-start" id="network-tab-pane" role="tabpanel" aria-labelledby="network-tab"
-        tabindex="0">
-        <div class="row mt-2">
-          <div class="col align-items-center">
-            <h3 class="text-start ps-4 mb-3">Training</h3>
-            <form class="ps-4">
-              <div class="mb-3">
-                <label for="saveasnet" class="form-label">Save as (ID)</label>
-                <input class="form-control" id="saveasnet">
-              </div>
-              <div class="row mt-3 align-items-center">
-                <div class="col">
-                  <label for="excluded" class="form-label">Recording IDs</label>
+        <div
+          class="tab-pane fade text-start"
+          id="network-tab-pane"
+          role="tabpanel"
+          aria-labelledby="network-tab"
+          tabindex="0"
+        >
+          <div class="row mt-2">
+            <div class="col align-items-center">
+              <h3 class="text-start ps-4 mb-3">Training</h3>
+              <form class="ps-4">
+                <div class="mb-3">
+                  <label for="saveasnet" class="form-label">Save as (ID)</label>
+                  <input class="form-control" id="saveasnet" />
                 </div>
-                <div class="col align-items-center col-1"></div>
-                <div class="col">
-                  <label for="included" class="form-label">Include in Training</label>
-                </div>
-              </div>
-              <div class="row align-items-center mb-3">
-                <div class="col">
-                  <select class="form-select" name="excluded" id="excluded" multiple> </select>
-                </div>
-                <div class="col align-items-center col-1">
-                  <div class="row"><button id="btn-exclude" class="btn btn-outline-secondary"
-                      type="button">&lt;</button></div>
-                  <div class="row mt-1"><button id="btn-include" class="btn btn-outline-secondary"
-                      type="button">&gt;</button></div>
-                </div>
-                <div class="col">
-                  <select class="form-select" name="included" id="included" multiple> </select>
-                </div>
-              </div>
-              <div class="row my-3 align-items-center">
-                <div class="col">
-                  <label for="batch_size" class="form-label">Batch size</label>
-                  <input type="number" min="1" max="1000" class="form-control" name="batch_size" id="batch_size"
-                    value="100">
-                </div>
-                <div class="col">
-                  <label for="epochs" class="form-label">Epochs</label>
-                  <input type="number" min="1" max="5000" class="form-control" name="epochs" id="epochs" value="1000">
-                </div>
-                <div class="col">
-                  <label for="channels" class="form-label">Channels</label>
-                  <input type="number" min="1" max="8" class="form-control" name="channels" id="channels" value="8">
-                </div>
-              </div>
-              <div class="mb-3">
-                <label for="trainingratio" class="form-label">Training / Validation ratio</label>
-                <span data-bs-toggle="tooltip"
-                  data-bs-title="Percentage of words included in training, the remaining data will be used to measure the accuracy."
-                  class="info"></span>
-                <div class="row">
+                <div class="row mt-3 align-items-center">
                   <div class="col">
-                    <input type="range" class="form-range" min="1" max="100" id="trainingratio" value="90">
+                    <label for="excluded" class="form-label"
+                      >Recording IDs</label
+                    >
                   </div>
-                  <div id="trainingratio-percent" class="col col-1 text-end">90%</div>
+                  <div class="col align-items-center col-1"></div>
+                  <div class="col">
+                    <label for="included" class="form-label"
+                      >Include in Training</label
+                    >
+                  </div>
                 </div>
-              </div>
-              <button id="train-btn" onclick="startTraining()" type="button" class="float-end btn btn-primary">Start
-                training</button>
-            </form>
-          </div>
-          <div class="col">
-            <div class="mb-3">
-              <h3 class="text-start ps-4 mb-3">Networks</h3>
-              <form class="ps-4">
-                <label for="networks" class="form-label">Network IDs</label>
-                <select class="form-select" name="networks" id="networks" multiple> </select>
-                <div class="mt-2">
-                  <button id="delete-network" class="btn btn-outline-secondary float-end" type="button">Delete</button>
-                </div>
-              </form>
-            </div>
-            <div class="row mt-2">
-              <h3 class="text-start ps-4 my-3">Results</h3>
-              <div class="ps-4 w-100">
-                <div class="progress">
-                  <div id="train-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                <div class="row align-items-center mb-3">
+                  <div class="col">
+                    <select
+                      class="form-select"
+                      name="excluded"
+                      id="excluded"
+                      multiple
+                    ></select>
+                  </div>
+                  <div class="col align-items-center col-1">
+                    <div class="row">
+                      <button
+                        id="btn-exclude"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        &lt;
+                      </button>
+                    </div>
+                    <div class="row mt-1">
+                      <button
+                        id="btn-include"
+                        class="btn btn-outline-secondary"
+                        type="button"
+                      >
+                        &gt;
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <select
+                      class="form-select"
+                      name="included"
+                      id="included"
+                      multiple
+                    ></select>
+                  </div>
                 </div>
                 <div class="row my-3 align-items-center">
                   <div class="col">
-                    <div>Training (loss): <span id="t-loss">0</span></div>
-                    <div>Training (accuracy): <span id="t-acc">0%</span></div>
-                    <div>Training (val_loss): <span id="t-vloss">0</span></div>
-                    <div>Training (val_accuracy): <span id="t-vacc">0%</span></div>
+                    <label for="batch_size" class="form-label"
+                      >Batch size</label
+                    >
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      class="form-control"
+                      name="batch_size"
+                      id="batch_size"
+                      value="200"
+                    />
                   </div>
                   <div class="col">
-                    <div>Validation (loss): <span id="v-loss">0</span></div>
-                    <div>Validation (accuracy): <span id="v-acc">0%</span></div>
+                    <label for="epochs" class="form-label">Epochs</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5000"
+                      class="form-control"
+                      name="epochs"
+                      id="epochs"
+                      value="1000"
+                    />
+                  </div>
+                  <div class="col">
+                    <label for="channels" class="form-label">Channels</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="8"
+                      class="form-control"
+                      name="channels"
+                      id="channels"
+                      value="6"
+                    />
+                  </div>
+                  <div class="col">
+                    <label for="windowSize" class="form-label"
+                      >Window Size</label
+                    >
+                    <span
+                      data-bs-toggle="tooltip"
+                      data-bs-title="When recorded in one stream, used to specify the amount of samples to split the data into."
+                      class="info"
+                    ></span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      class="form-control"
+                      name="windowSize"
+                      id="windowSize"
+                      value="200"
+                    />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label for="trainingratio" class="form-label"
+                    >Training / Validation ratio</label
+                  >
+                  <span
+                    data-bs-toggle="tooltip"
+                    data-bs-title="Percentage of words included in training, the remaining data will be used to measure the accuracy."
+                    class="info"
+                  ></span>
+                  <div class="row">
+                    <div class="col">
+                      <input
+                        type="range"
+                        class="form-range"
+                        min="1"
+                        max="100"
+                        id="trainingratio"
+                        value="85"
+                      />
+                    </div>
+                    <div id="trainingratio-percent" class="col col-1 text-end">
+                      85%
+                    </div>
+                  </div>
+                </div>
+                <button
+                  id="train-btn"
+                  onclick="startTraining()"
+                  type="button"
+                  class="float-end btn btn-primary"
+                >
+                  Start training
+                </button>
+              </form>
+            </div>
+            <div class="col">
+              <div class="mb-3">
+                <h3 class="text-start ps-4 mb-3">Networks</h3>
+                <form class="ps-4">
+                  <label for="networks" class="form-label">Network IDs</label>
+                  <select
+                    class="form-select"
+                    name="networks"
+                    id="networks"
+                    multiple
+                  ></select>
+                  <div class="mt-2">
+                    <button
+                      id="delete-network"
+                      class="btn btn-outline-secondary float-end"
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div class="row mt-2">
+                <h3 class="text-start ps-4 my-3">Results</h3>
+                <div class="ps-4 w-100">
+                  <div class="progress">
+                    <div
+                      id="train-progress"
+                      class="progress-bar"
+                      role="progressbar"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <div class="row my-3 align-items-center">
+                    <div class="col">
+                      <div>Training (loss): <span id="t-loss">0</span></div>
+                      <div>Training (accuracy): <span id="t-acc">0%</span></div>
+                    </div>
+                    <div class="col">
+                      <div>
+                        Validation (val_loss): <span id="v-loss">0</span>
+                      </div>
+                      <div>
+                        Validation (val_accuracy): <span id="v-acc">0%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="tab-pane fade text-start" id="evaluator-tab-pane" role="tabpanel" aria-labelledby="evaluator-tab"
-        tabindex="0">
-        <div class="row mt-2">
-          <div class="col align-items-center col-md-4">
-            <h3 class="text-start ps-4 mb-3">Classification</h3>
-            <form class="ps-4">
-              <label for="evaluate-network" class="form-label">Network ID</label>
-              <select class="mb-3 form-select" name="evaluate-network" id="evaluate-network"> </select>
-              <label for="history-count" class="form-label">History count</label>
-              <input type="number" min="1" max="100" class="mb-3 form-control" name="history-count" id="history-count"
-                value="10" />
-              <label for="refresh-rate" class="form-label">Refresh rate (ms)</label>
-              <input type="number" min="1" max="1000" class="mb-3 form-control" name="refresh-rate" id="refresh-rate"
-                value="50" />
-              <input onchange="toggleSynthetize(this.checked)" type="checkbox" class="mb-3 form-check-input"
-                name="synth-voice" id="synth-voice" />
-              <label for="synth-voice" class="form-label">Synth voice</label>
-              <br />
-              <input onchange="toggleKeyboard(this.checked)" type="checkbox" class="mb-3 form-check-input"
-                name="key-press" id="key-press" />
-              <label for="key-press" class="form-label">Simulate keypress</label>
-              <br />
-              <button onclick="toggleEvaluation()" type="button" class="float-end btn btn-success"
-                id="predict-btn">Start classification stream</button>
-            </form>
-          </div>
-          <div class="col">
-            <div class="mb-3">
-              <h3 class="text-start ps-4 mb-3">Predicting</h3>
-              <div class="ps-4 mb-3">
-                <div id="evaluated-word" class="text-center"></div>
-              </div>
-              <h3 class="text-start ps-4 mb-3">History</h3>
-              <div class="ps-4">
-                <table class="table mt-3">
-                  <thead class="thead-dark">
-                    <tr>
-                      <th scope="col" class="col-sm-2">#</th>
-                      <th scope="col">Word</th>
-                    </tr>
-                  </thead>
-                  <tbody id="evaluated-history"> </tbody>
-                </table>
+        <div
+          class="tab-pane fade text-start"
+          id="evaluator-tab-pane"
+          role="tabpanel"
+          aria-labelledby="evaluator-tab"
+          tabindex="0"
+        >
+          <div class="row mt-2">
+            <div class="col align-items-center col-md-4">
+              <h3 class="text-start ps-4 mb-3">Classification</h3>
+              <form class="ps-4">
+                <label for="evaluate-network" class="form-label"
+                  >Network ID</label
+                >
+                <select
+                  class="mb-3 form-select"
+                  name="evaluate-network"
+                  id="evaluate-network"
+                ></select>
+                <label for="history-count" class="form-label"
+                  >History count</label
+                >
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  class="mb-3 form-control"
+                  name="history-count"
+                  id="history-count"
+                  value="10"
+                />
+                <label for="refresh-rate" class="form-label"
+                  >Refresh rate (ms)</label
+                >
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  class="mb-3 form-control"
+                  name="refresh-rate"
+                  id="refresh-rate"
+                  value="50"
+                />
+                <input
+                  onchange="toggleSynthetize(this.checked)"
+                  type="checkbox"
+                  class="mb-3 form-check-input"
+                  name="synth-voice"
+                  id="synth-voice"
+                />
+                <label for="synth-voice" class="form-label">Synth voice</label>
+                <br />
+                <input
+                  onchange="toggleKeyboard(this.checked)"
+                  type="checkbox"
+                  class="mb-3 form-check-input"
+                  name="key-press"
+                  id="key-press"
+                />
+                <label for="key-press" class="form-label"
+                  >Simulate keypress</label
+                >
+                <br />
+                <button
+                  onclick="toggleEvaluation()"
+                  type="button"
+                  class="float-end btn btn-success"
+                  id="predict-btn"
+                >
+                  Start classification stream
+                </button>
+              </form>
+            </div>
+            <div class="col">
+              <div class="mb-3">
+                <h3 class="text-start ps-4 mb-3">Predicting</h3>
+                <div class="ps-4 mb-3">
+                  <div id="evaluated-word" class="text-center"></div>
+                </div>
+                <h3 class="text-start ps-4 mb-3">History</h3>
+                <div class="ps-4">
+                  <table class="table mt-3">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th scope="col" class="col-sm-2">#</th>
+                        <th scope="col">Word</th>
+                      </tr>
+                    </thead>
+                    <tbody id="evaluated-history"></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </article>
-    <div class="row" style="height: 90px;"></div>
-    <footer class="fixed-bottom py-3 m-4 mb-0 bg-body border-top">
-      <div class="row text-start">
-        <div class="col-sm">
-          <span class="text-muted"><a class="text-reset text-decoration-none" target="_blank"
-              href="https://github.com/MateusAquino">© 2023 MateusAquino</a></span>
+      </article>
+      <div class="row" style="height: 90px"></div>
+      <footer class="fixed-bottom py-3 m-4 mb-0 bg-body border-top">
+        <div class="row text-start">
+          <div class="col-sm">
+            <span class="text-muted"
+              ><a
+                class="text-reset text-decoration-none"
+                target="_blank"
+                href="https://github.com/MateusAquino"
+                >© 2023 MateusAquino</a
+              ></span
+            >
+          </div>
+
+          <div class="col-sm">
+            <a
+              class="mb-3 mb-md-0 text-decoration-none float-end"
+              target="_blank"
+              href="https://github.com/MateusAquino/subvocalization-emg"
+              ><svg
+                width="24"
+                height="24"
+                role="img"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <title>GitHub</title>
+                <path
+                  fill="#000000"
+                  d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+                /></svg
+            ></a>
+          </div>
         </div>
+      </footer>
+    </div>
 
-        <div class="col-sm">
-          <a class="mb-3 mb-md-0 text-decoration-none float-end" target="_blank"
-            href="https://github.com/MateusAquino/subvocalization-emg"><svg width="24" height="24" role="img"
-              viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <title>GitHub</title>
-              <path fill="#000000"
-                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-            </svg></a>
-        </div>
-      </div>
-    </footer>
-  </div>
+    <datalist id="ports"></datalist>
 
-  <datalist id="ports"></datalist>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
-    crossorigin="anonymous"></script>
-  <script src="./mainscripts.js"></script>
-  <script src="./events.js"></script>
-  <script src="./bridge.js"></script>
-</body>
-
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+      crossorigin="anonymous"
+    ></script>
+    <script src="./mainscripts.js"></script>
+    <script src="./events.js"></script>
+    <script src="./bridge.js"></script>
+  </body>
 </html>

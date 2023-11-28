@@ -86,7 +86,7 @@ function addToCharts(data) {
     curve = [];
     for (let i = 15; i < data[idx].length; i++) {
       channelData = data[idx][i];
-      curve.push({ x: i-15, y: channelData });
+      curve.push({ x: i - 15, y: channelData });
     }
     charts[idx].data.datasets[0].data = curve;
     charts[idx].update("none");
@@ -256,18 +256,25 @@ function startTraining() {
   const batch_size = document.getElementById("batch_size").value;
   const epochs = document.getElementById("epochs").value;
   const channels = document.getElementById("channels").value;
+  const windowSize = document.getElementById("windowSize").value;
   const options = document.getElementById("included").options;
   const includedRecords = Array.from(options).map((option) => option.value);
   if (!includedRecords.length) return;
   document.getElementById("train-btn").disabled = true;
 
-  eel.start_training(saveasnet, ratio, includedRecords, batch_size, epochs, channels);
+  eel.start_training(
+    saveasnet,
+    ratio,
+    includedRecords,
+    batch_size,
+    epochs,
+    channels,
+    windowSize
+  );
 }
 
 const tloss = document.getElementById("t-loss");
 const tacc = document.getElementById("t-acc");
-const tvloss = document.getElementById("t-vloss");
-const tvacc = document.getElementById("t-vacc");
 const vloss = document.getElementById("v-loss");
 const vacc = document.getElementById("v-acc");
 const progress = document.getElementById("train-progress");
@@ -280,8 +287,8 @@ function setTraining(epoch, loss, accuracy, val_loss, val_accuracy) {
   } else {
     tloss.textContent = loss.toFixed(3);
     tacc.textContent = `${(accuracy * 100).toFixed(3)}%`;
-    tvloss.textContent = val_loss.toFixed(3);
-    tvacc.textContent = `${(val_accuracy * 100).toFixed(3)}%`;
+    vloss.textContent = val_loss.toFixed(3);
+    vacc.textContent = `${(val_accuracy * 100).toFixed(3)}%`;
     progress.style.width = `${((epoch + 1) / epochs) * 100}%`;
     progress.textContent = `${epoch + 1}/${epochs}`;
   }
