@@ -67,7 +67,7 @@ It should be accessible at [`localhost:8000`](http://localhost:8000). In case th
 
 ## 🧠 How to use
 
-The main page includes the Time Series (unprocessed) for all 8 channels, you can also see some logging information and access to the board session on top of the page. Once the session is started you'll have access to the Recording tab, a page to setup the words and amount of information you'll want to train later. Note that all the default existing words are currently hardcoded into the HTML file, but they can be changed anytime:
+The main page includes the Time Series (filtered) for all 8 channels, you can also see some logging information and access to the board session on top of the page. Once the session is started you'll have access to the Recording tab, a page to setup the words and amount of information you'll want to train later. Note that all the default existing words are currently hardcoded into the HTML file, but they can be changed anytime:
 
 |                                                      EMG Tab                                                      |                                                      Recording Tab                                                      |
 | :---------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------: |

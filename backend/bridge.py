@@ -115,4 +115,8 @@ def synthetize(text):
 def press_key(key):
     eel.spawn(press, key)
 
+@eel.expose
+def set_emg_tab(key):
+    set_save_resources(not key)
+
 eel.init('frontend')

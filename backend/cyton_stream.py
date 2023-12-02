@@ -1,12 +1,14 @@
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes, AggOperations, WaveletTypes, WaveletDenoisingTypes, ThresholdTypes, WaveletExtensionTypes, NoiseEstimationLevelTypes
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 import pandas as pd
+import numpy as np
 import logging
 import eel
 
 running = False
 save_resources = False
 board = None
+board_id = BoardIds.SYNTHETIC_BOARD
 exg_channels = None
 sampling_rate = None
 
@@ -28,6 +30,7 @@ def start_stream(port=''):
         logging.basicConfig(level=logging.DEBUG)
         global board
         global running
+        global board_id
         global exg_channels
         global sampling_rate
         global save_resources
@@ -43,7 +46,7 @@ def start_stream(port=''):
         params.ip_port = 0
         params.timeout = 0
         params.master_board = BoardIds.NO_BOARD
-        exg_channels = BoardShim.get_exg_channels(board_id)
+        exg_channels = BoardShim.get_exg_channels(board_id)[:8]
         sampling_rate = BoardShim.get_sampling_rate(board_id)
         board = BoardShim(board_id, params)
         board.prepare_session()
@@ -53,11 +56,12 @@ def start_stream(port=''):
         running = True
         while running:
             if save_resources:
-                eel.sleep(0.001)  # 1ms
+                eel.sleep(0.005)  # 5ms
             else:
-                eel.sleep(0.05)  # 50ms
-                data = board.get_current_board_data(sampling_rate*10)
-                data = limit_channels(data)
+                eel.sleep(0.03)  # 30ms
+                data = board.get_current_board_data(1260)[exg_channels]
+                data = np.array(data)
+                data = preprocess(data, board_id, [*range(len(exg_channels))]).tolist()
                 eel.stream(data)
         board.stop_stream()
         board.release_session()
@@ -85,6 +89,13 @@ def get_current_board_data(samples):
     else:
         return []
 
+def get_exg_channels():
+    global exg_channels
+    return exg_channels
+
+def get_board_id():
+    global board_id
+    return board_id
 
 def limit_channels(data):
     if data.size == 0:
@@ -102,20 +113,17 @@ def preprocess(data, board_id, exg_channels):
     if data.size == 0:
         return data
     for _count, channel in enumerate(exg_channels):
-        channel_data = data[channel].to_numpy() if isinstance(
-            data[channel], pd.Series) else data[channel]
+        channel_data = data[channel].to_numpy() if isinstance(data[channel], pd.Series) else data[channel]
         DataFilter.detrend(channel_data, DetrendOperations.CONSTANT.value)
-        DataFilter.remove_environmental_noise(channel_data, sampling_rate, NoiseTypes.SIXTY.value)
-        # DataFilter.perform_bandpass(channel_data, sampling_rate, 1.3, 180.0, 4,
-        #                             FilterTypes.BUTTERWORTH.value, 0)
-        # DataFilter.perform_bandstop(channel_data, sampling_rate, 48.0, 52.0, 2,
-        #                             FilterTypes.BUTTERWORTH.value, 0)
-        # DataFilter.perform_bandstop(channel_data, sampling_rate, 58.0, 62.0, 2,
-        #                             FilterTypes.BUTTERWORTH.value, 0)
+        DataFilter.remove_environmental_noise(channel_data, sampling_rate, NoiseTypes.SIXTY.value);
+        DataFilter.perform_bandpass(channel_data, sampling_rate, 2, 57, 4, FilterTypes.BUTTERWORTH.value, 1.0)
+        DataFilter.perform_rolling_filter(channel_data, 3, AggOperations.MEAN.value)
+        # DataFilter.perform_wavelet_denoising(channel_data, WaveletTypes.BIOR3_9, 3,
+        #                                          WaveletDenoisingTypes.SURESHRINK, ThresholdTypes.HARD,
+        #                                          WaveletExtensionTypes.SYMMETRIC, NoiseEstimationLevelTypes.FIRST_LEVEL)
     if isinstance(data[channel], pd.Series):
       return data.drop(data.columns[0],axis=1).to_numpy()
     return data
-
 
 
 def set_save_resources(flag):

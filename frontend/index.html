@@ -101,6 +101,7 @@
             role="tab"
             aria-controls="emg-tab-pane"
             aria-selected="true"
+            onclick="setEMGTab(true)"
           >
             EMG
           </button>
@@ -115,6 +116,7 @@
             role="tab"
             aria-controls="recording-tab-pane"
             aria-selected="false"
+            onclick="setEMGTab(false)"
           >
             Recordings
           </button>
@@ -129,6 +131,7 @@
             role="tab"
             aria-controls="network-tab-pane"
             aria-selected="false"
+            onclick="setEMGTab(false)"
           >
             Neural Network
           </button>
@@ -143,6 +146,7 @@
             role="tab"
             aria-controls="evaluator-tab-pane"
             aria-selected="false"
+            onclick="setEMGTab(false)"
           >
             Evaluator
           </button>
@@ -160,6 +164,16 @@
             <div class="col align-items-center">
               <h3 class="text-start ps-4 mb-3">
                 Time Series
+                <div class="float-end">
+                  <input
+                    type="range"
+                    class="form-range"
+                    min="0"
+                    max="100"
+                    value="0"
+                    oninput="zoomX(this.value)"
+                  />
+                </div>
                 <div
                   class="d-none btn-group float-end mt-1"
                   role="group"
@@ -270,7 +284,7 @@
                     max="300"
                     class="form-control"
                     id="wpm"
-                    value="80"
+                    value="75"
                   />
                 </div>
                 <div class="mb-3">
@@ -519,7 +533,7 @@
                       class="form-control"
                       name="batch_size"
                       id="batch_size"
-                      value="200"
+                      value="20"
                     />
                   </div>
                   <div class="col">
@@ -531,7 +545,7 @@
                       class="form-control"
                       name="epochs"
                       id="epochs"
-                      value="1000"
+                      value="700"
                     />
                   </div>
                   <div class="col">
@@ -694,7 +708,7 @@
                   class="mb-3 form-control"
                   name="refresh-rate"
                   id="refresh-rate"
-                  value="50"
+                  value="15"
                 />
                 <input
                   onchange="toggleSynthetize(this.checked)"

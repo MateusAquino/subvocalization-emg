@@ -1,9 +1,9 @@
-from backend.cyton_stream import get_board_data, limit_channels, set_save_resources
-from brainflow.data_filter import DataFilter
+from backend.cyton_stream import get_board_data, get_exg_channels
 import pandas as pd
 import random as rd
 import numpy as np
 import string
+import math
 import eel
 
 loop_count = 0
@@ -24,16 +24,18 @@ def record_stream(saveasrec, wpm, period, one_stream, include_silence, include_f
     saveasrec = saveasrec + '_1S' if one_stream else saveasrec
     last_word = None
     loop_count = 0
-    total_loops = period * wpm/60
+    total_loops = math.floor(period * wpm/60)
     timeout = 60/wpm
     word_history = []
+    exg_channels = get_exg_channels()
     words.append("$FALLBACK") if include_fallback else None
     words.append("$SILENCE") if include_silence else None
+    get_board_data()
     eel.record_step("$PREPARE", -1, total_loops)
-    set_save_resources(True)
     eel.sleep(3)
     get_board_data()
 
+    emg_data = []
     # Display random word
     while loop_count < total_loops:
         word = current_word(words, loop_count, total_loops) if one_stream else random_word(words, last_word)
@@ -41,22 +43,18 @@ def record_stream(saveasrec, wpm, period, one_stream, include_silence, include_f
         last_word = word
         eel.record_step(word, loop_count, total_loops)
         loop_count += 1
-        print("%d/%d - %s" % (loop_count, total_loops, word))
         eel.sleep(timeout)
+        emg_data.append(get_board_data()[exg_channels])
 
-    data = get_board_data()
-    set_save_resources(False)
     eel.record_step("$END", loop_count, total_loops)
-    transposed_data = np.transpose(limit_channels(data))
-    word_history = np.transpose(word_history)
 
     eel.log("Saving to file...")
-    df = pd.DataFrame(transposed_data, columns=['Channel_{}'.format(
-        x) for x in range(1, transposed_data.shape[1]+1)])
-    rows = transposed_data.shape[0]
-    new_col = np.repeat(word_history, rows/word_history.shape[0])
-    new_col = fix_width(new_col, rows, last_word)
-    df.insert(loc=0, column='WORD', value=new_col)
+
+    for i in range(len(emg_data)):
+      emg_data[i] = pd.DataFrame(np.transpose(emg_data[i]), columns=['Channel_{}'.format(x) for x in range(1, len(emg_data[i])+1)])
+      emg_data[i].insert(loc=0, column='WORD', value=word_history[i])
+
+    df = pd.concat(emg_data)
 
     # Write to file
     df.to_csv("dist/saves/%s.csv" % (saveasrec), index=False)

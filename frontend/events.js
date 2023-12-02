@@ -31,6 +31,7 @@ const includeBtn = document.getElementById("btn-include");
 const excludeBtn = document.getElementById("btn-exclude");
 
 networkTab.onclick = () => {
+  setEMGTab(false);
   const recordings = Array.from(
     document.querySelector("[name=recordings]").options
   ).map((option) => option.value);
@@ -96,6 +97,10 @@ function deleteFromList(selector) {
     else if (selector === "[name=networks]") eel.delete_network(option.value);
     select.removeChild(option);
   });
+}
+
+function setEMGTab(value) {
+  eel.set_emg_tab(value);
 }
 
 var synthetizing = false;

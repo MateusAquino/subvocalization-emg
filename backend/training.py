@@ -1,9 +1,15 @@
+import tensorflow as tf
+
+gpu_devices = tf.config.list_physical_devices('GPU')
+for device in gpu_devices:
+    tf.config.experimental.set_memory_growth(device, True)
+
 from brainflow.board_shim import BoardIds
 from backend.cyton_stream import preprocess
 from sklearn.model_selection import train_test_split
 from keras.callbacks import Callback
 from keras.models import Sequential
-from keras.layers import Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dense, Dropout
+from keras.layers import LSTM, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dense, Dropout
 from keras.utils import to_categorical
 from IPython.display import display
 import matplotlib.pyplot as plt
@@ -20,7 +26,7 @@ def train_data(network_id, ratio, recordings, batch_size, epochs, channels, wind
                              for i in range(10))
     eel.log("Start new network (%s) training" % (network_id))
     
-    words_map, samples, model = train_network(ratio, recordings, batch_size, epochs, channels, window_size, [ProgressCallback()])
+    words_map, samples, model, _history = train_network(ratio, recordings, batch_size, epochs, channels, window_size, [ProgressCallback()])
 
     # Save network + words (answers) + sampling rate
     model.save("dist/networks/%s" % (network_id))
@@ -47,8 +53,8 @@ def train_network(ratio, recordings, batch_size, epochs, channels, window_size, 
       data = None
       for i in range(len(restored_df)):
           if i == 0:
-              word = restored_df.iloc[i, 0]
-              data = preprocessed_data[:, i]
+              word = restored_df.iloc[0, 0]
+              data = preprocessed_data[:, 0]
           elif restored_df.iloc[i, 0] == word:
               data = np.vstack((data, preprocessed_data[:, i]))
           else:
@@ -65,22 +71,34 @@ def train_network(ratio, recordings, batch_size, epochs, channels, window_size, 
   if one_stream:
       emg_words, emg_data = separate_data(emg_words, emg_data, window_size)
 
-  # Plot words | Display data in Jupyter Notebook
-  # plt.figure()
-  # _f, axarr = plt.subplots(1, 4, constrained_layout=True, figsize=(6, 6))
-  # for i, word in enumerate(emg_words[:4]):
-  #     axarr[i].imshow(emg_data[i], cmap='hot', interpolation='none')
-  #     axarr[i].title.set_text(word + ' %d'% (1 + i/5))
-  #     axarr[i].set(xticks=[])
-  # plt.show() 
-
   # Get minimum length of emg_data to make all data the same length
-  samples = min([len(x) for x in emg_data])
-  data_reduced = [x[:samples] for x in emg_data]
+  len_array = [len(x) for x in emg_data]
+  samples = min(len_array)
+  max_samples = max(len_array)
+  avg_samples = int(sum(len_array)/len(len_array))
+  data_original = len(emg_data)
+  
+  # remove small samples if too small compared to average
+  if avg_samples - samples > max_samples - avg_samples:
+      # remove samples from emg_data and emg_words with length smaller than average
+      emg_words = [word for i, word in enumerate(emg_words) if len(emg_data[i]) > avg_samples]
+      emg_data = [data for data in emg_data if len(data) > avg_samples]
 
-  emg_data = np.asarray(data_reduced).astype('float32')
+  len_array = [len(x) for x in emg_data]
+  new_samples = min(len_array)
+  new_avg_samples = int(sum(len_array)/len(len_array))
+  data_reduced = [emg_data[:new_samples] for emg_data in emg_data]
+  len_reduced = len(data_reduced)
+
+  print('Original words count:', data_original)
+  print('Original Avg Samples (per word):', avg_samples)
+  print('New words count:', len_reduced, "(removed", data_original - len_reduced, "words)")
+  print('New Avg Samples (per word):', new_avg_samples)
+  print('New Samples:', new_samples, "(removed", new_avg_samples - new_samples, "samples from average)")
+
+  emg_data = np.asarray(data_reduced[1:]).astype('float32')
   # transform each unique string in emg_word array into a number
-  emg_words, words_map = pd.factorize(emg_words)
+  emg_words, words_map = pd.factorize(emg_words[1:])
   emg_words = to_categorical(emg_words)
   possibilities = len(words_map)
 
@@ -89,17 +107,33 @@ def train_network(ratio, recordings, batch_size, epochs, channels, window_size, 
 
   # Build Model
   model = Sequential()
-  model.add(Conv1D(40, 10, strides=2, padding='same',
-              activation='relu', input_shape=(samples, channels)))
+  model.add(Conv1D(40, 3, strides=1, activation='relu', input_shape=(new_samples, channels))) 
+  # model.add(LSTM(100, input_shape=(None,channels)))
   model.add(Dropout(0.2))
-  model.add(MaxPooling1D(3))
+  # model.add(MaxPooling1D(3))
   model.add(GlobalAveragePooling1D())
+  # model.add(Dense(50, activation='relu'))
+  # model.add(Dropout(0.2))
   model.add(Dense(50, activation='relu'))
   model.add(Dropout(0.2))
   model.add(Dense(possibilities, activation='softmax'))
 
-  model.compile(loss='binary_crossentropy',
-                  optimizer='adam', metrics=['accuracy'])
+  # model = Sequential()
+  # model.add(Conv1D(40, 10, strides=2, padding='same', activation='relu', input_shape=(samples, channels)))
+  # model.add(Dropout(0.1))
+  # model.add(MaxPooling1D(3))
+  # model.add(Conv1D(40, 5, strides=2, padding='same', activation='relu'))
+  # model.add(Dropout(0.1))
+  # model.add(MaxPooling1D(3))
+  # model.add(Conv1D(40, 4, strides=1, padding='same', activation='relu'))
+  # model.add(Dropout(0.1))
+  # model.add(MaxPooling1D(3))
+  # model.add(GlobalAveragePooling1D())
+  # model.add(Dense(50, activation='relu'))
+  # model.add(Dropout(0.1))
+  # model.add(Dense(possibilities, activation='softmax'))
+
+  model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
   history = model.fit(X_train, y_train, validation_data=(
         X_test, y_test), batch_size=batch_size,

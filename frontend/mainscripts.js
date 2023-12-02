@@ -11,6 +11,8 @@ const colors = [
 let charts = [];
 
 // EMG Charts
+const dataSkip = 3;
+const xLength = Math.floor(1250 / dataSkip);
 function newCharts() {
   console.log("Creating charts");
   if (charts) charts.forEach((chart) => chart.destroy());
@@ -39,6 +41,7 @@ function newCharts() {
         maintainAspectRatio: false,
         responsive: true,
         plugins: {
+          tooltip: { enabled: false },
           decimation: {
             algorithm: "lttb",
             samples: 500,
@@ -54,13 +57,19 @@ function newCharts() {
             type: "linear",
             beginAtZero: true,
             min: 0,
-            max: 2499,
+            max: xLength - 1,
             ticks: { display: false },
           },
           y: {
-            ticks: { display: false },
+            ticks: {
+              callback: (val) => `${Math.floor(val)}µV`,
+              maxTicksLimit: 2,
+              align: "end",
+            },
             beginAtZero: false,
             stacked: true,
+            min: -150,
+            max: 150,
           },
         },
       },
@@ -82,12 +91,14 @@ function addToCharts(data) {
   if (data[0].length < 15) return;
   if (data[0].length < lastDataLength) newCharts();
   lastDataLength = data[0].length;
+
   for (let idx = 0; idx < 8; idx++) {
-    curve = [];
-    for (let i = 15; i < data[idx].length; i++) {
-      channelData = data[idx][i];
-      curve.push({ x: i - 15, y: channelData });
-    }
+    let i = 0;
+    curve = Array.from(Array(xLength).keys()).map((x) => {
+      if (x <= xLength - Math.floor(data[idx].length / dataSkip))
+        return { x: x, y: null };
+      return { x: x, y: data[idx][(i += dataSkip)] };
+    });
     charts[idx].data.datasets[0].data = curve;
     charts[idx].update("none");
   }
@@ -152,6 +163,13 @@ function zoomAll(delta) {
   charts.forEach((chart) => zoom(chart, -delta));
 }
 
+function zoomX(value) {
+  charts.forEach(
+    (chart) =>
+      (chart.options.scales.x.min = Math.floor((value / 100) * (xLength - 2)))
+  );
+}
+
 function zoom(chart, delta) {
   // reset zoom
   if (delta == 0) {
@@ -196,6 +214,7 @@ function stopRecording() {
 }
 
 function setRecording(loopCount, totalLoops) {
+  console.log(loopCount, totalLoops);
   const active = loopCount != totalLoops;
   loopCount += 1;
   document
