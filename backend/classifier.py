@@ -29,13 +29,6 @@ def predict_emg(network_id, history_count, refresh_rate):
         emg_data = np.transpose(emg_data)
         emg_data = np.expand_dims(emg_data, axis=0)
         prediction = model.predict(emg_data, verbose=0)
-        #print percentages
-        percentages = prediction[0]
-        percentages = np.array(percentages)
-        percentages = percentages.tolist()
-        percentages = [round(x, 2) for x in percentages]
-        print(percentages)
-        
         prediction = np.argmax(prediction, axis=1)
         prediction = words.iloc[prediction].values[0][1]
         last_predictions.append(prediction)

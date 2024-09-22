@@ -18,9 +18,6 @@
   <a aria-label="Proof of Concept" href="./Proof%20of%20Concept/Complete%20processing.ipynb">
     <img src="https://img.shields.io/badge/jupyter-PoC-success?logo=Jupyter"></img>
   </a>
-  <a aria-label="Papers (coming soon)" href="#">
-    <img src="https://img.shields.io/badge/dissertation-coming%20soon-yellow"></img>
-  </a>
 </p>
 
 ## 📄 Abstract
@@ -90,13 +87,13 @@ Electrodes placement schema on Cyton Board
 |       Region        | Color  |     Pin     |
 | :-----------------: | :----: | :---------: |
 |       Earlobe       | Black  |    BIAS     |
-|       Mental        | Yellow | N1P (upper) |
-|   Inner laryngeal   |  Blue  |     N3P     |
+|       Mental        | Yellow | N3P (upper) |
+|   Inner laryngeal   |  Blue  | N1P (upper) |
 |   Outer laryngeal   |  Red   | N1P (lower) |
-|        Hyoid        | Green  |     N6P     |
-| Inner infra-orbital | Purple |     N5P     |
-| Outer infra-orbital | Brown  |     N2P     |
-|       Buccal        | Orange |     N4P     |
+|        Hyoid        | Green  | N3P (lower) |
+| Inner infra-orbital | Purple | N2P (upper) |
+| Outer infra-orbital | Brown  |     N4P     |
+|       Buccal        | Orange | N2P (lower) |
 
 Selection of the final electrode target areas through feature selection on muscular areas of interest
 :-------------------------:
@@ -126,12 +123,33 @@ python -m ipykernel install --user --name=venv # self-install
 
 - [x] [**_Desenvolvimento de um software para gravação e processamento de dados de eletromiografia para reconhecimento de comandos e termos_**](https://ctic.univap.br/ctic/qualivitae/resumos/anais_qualivitae_2023.pdf#page=28):
   - This paper was showcased during the [XXII Congresso Saúde e Qualidade de Vida - Qualivitae](https://ctic.univap.br/ctic/qualivitae/index.php) (2023), marking the initial phase of our research. The primary objective of this phase was the creation of a customizable backend and frontend capable of capturing and analyzing EMG data. It's important to note that this paper exclusively employed synthetic data; no human data was involved in this particular study.
-- [ ] **WIP**: **_Desenvolvimento de uma interface de fala silenciosa utilizando deep learning e emg no processamento de subvocalização_**
+- [x] [**_Desenvolvimento de uma interface de fala silenciosa utilizando deep learning e emg no processamento de subvocalização_**](https://www.inicepg.univap.br/cd/INIC_2023/anais/arquivos/RE_0007_0371_01.pdf)
   - This paper is currently in progress and is scheduled for presentation at the [XXVII Encontro Latino Americano de Iniciação Científica](https://www.inicepg.univap.br/home). The main objective of this endeavor is to employ the identical processing algorithms and neural network that were developed during the previous research, this time using publicly available EMG data.
-- [ ] **TODO**: This marks the concluding phase of our research, which will be submitted to a journal by the conclusion of this year. For this stage, we will involve human participants and share the electrodes placement, as we have already obtained approval from Brazil's Ethics Committee (CAAE: 65587722.5.0000.5503, Parecer 6112574).
+
+This marks the concluding phase of our research. For this publicly available repository, we included data from human participants and shared the electrodes placement, as we have obtained approval from Brazil's Ethics Committee (CAAE: 65587722.5.0000.5503, Parecer 6112574).
+
+You can view the processing and results obtained from the human sEMG in the third PoC file: [Subvocalization.ipynb](./Proof%20of%20Concept/Subvocalization.ipynb).
+
+## 📊 EMG Folder Structure
+
+The dataset folder `/saves` is where all the EMG data is stored by default in the application, however this folder was organized to include the data from all 10 participants of the study. The all sessions recorded from all participants, it is grouped by: `Participants Code` -> `Speech style` -> `Words`.
+
+The Speech style could be any of:
+
+- **F**: Normal speech ("Fala")
+- **A**: Lip articulation ("Articulação labial")
+- **S**: Subvocalization ("Subvocalização")
+
+The four possible words selected in this study was: Yes ("Sim"), No ("Não"), Maybe ("Talvez") and Silence, whereas the silence itself is stored inside the folders between the words.
+
+## 📝 Conclusion
+
+The results demonstrate that this processing and training method is effective for detecting strong gestures, such as speech and articulation. However, for more subtle muscle movements, such as subvocalization, further improvements in noise reduction and data augmentation are necessary.
+
+It is important to note that the same methods, montage, and algorithm yielded varying results across different participants. Some exhibited lower accuracy in detecting easily recognizable speech, while others achieved higher accuracy in identifying less discernible subvocalizations.
 
 ## 📜 License
 
 All source code is made available under a BSD 3-clause license. You can freely use and modify the code, without warranty, so long as you provide attribution to the author. See [LICENSE](./LICENSE) for the full license text.
 
-The manuscript text is not open source. The author reserve the rights to the article content, which is currently being held for submission and publication in the UNIVAP's INIC 2023 Congress.
+The author reserve the rights to the article content.

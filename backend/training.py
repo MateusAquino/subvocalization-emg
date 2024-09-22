@@ -6,11 +6,13 @@ for device in gpu_devices:
 
 from brainflow.board_shim import BoardIds
 from backend.cyton_stream import preprocess
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
-from keras.callbacks import Callback
+from keras.callbacks import Callback, ReduceLROnPlateau
 from keras.models import Sequential
-from keras.layers import LSTM, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dense, Dropout
+from keras.layers import LSTM, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Normalization, Flatten, Dense, Dropout, BatchNormalization
 from keras.utils import to_categorical
+from keras import regularizers
 from IPython.display import display
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -26,7 +28,7 @@ def train_data(network_id, ratio, recordings, batch_size, epochs, channels, wind
                              for i in range(10))
     eel.log("Start new network (%s) training" % (network_id))
     
-    words_map, samples, model, _history = train_network(ratio, recordings, batch_size, epochs, channels, window_size, [ProgressCallback()])
+    words_map, samples, model, _history, _report = train_network(ratio, recordings, batch_size, epochs, channels, window_size, [ProgressCallback()])
 
     # Save network + words (answers) + sampling rate
     model.save("dist/networks/%s" % (network_id))
@@ -81,13 +83,13 @@ def train_network(ratio, recordings, batch_size, epochs, channels, window_size, 
   # remove small samples if too small compared to average
   if avg_samples - samples > max_samples - avg_samples:
       # remove samples from emg_data and emg_words with length smaller than average
-      emg_words = [word for i, word in enumerate(emg_words) if len(emg_data[i]) > avg_samples]
-      emg_data = [data for data in emg_data if len(data) > avg_samples]
+      emg_words = [word for i, word in enumerate(emg_words) if len(emg_data[i]) > avg_samples-12]
+      emg_data = [data for data in emg_data if len(data) > avg_samples-12]
 
   len_array = [len(x) for x in emg_data]
   new_samples = min(len_array)
   new_avg_samples = int(sum(len_array)/len(len_array))
-  data_reduced = [emg_data[:new_samples] for emg_data in emg_data]
+  data_reduced = [emg_data[-new_samples:] for emg_data in emg_data]
   len_reduced = len(data_reduced)
 
   print('Original words count:', data_original)
@@ -107,39 +109,30 @@ def train_network(ratio, recordings, batch_size, epochs, channels, window_size, 
 
   # Build Model
   model = Sequential()
-  model.add(Conv1D(40, 3, strides=1, activation='relu', input_shape=(new_samples, channels))) 
-  # model.add(LSTM(100, input_shape=(None,channels)))
-  model.add(Dropout(0.2))
-  # model.add(MaxPooling1D(3))
+  model.add(Normalization(axis=-1)) 
+  model.add(Conv1D(50, 3, strides=1, activation='relu', 
+                 kernel_regularizer=regularizers.l2(0.001), input_shape=(new_samples, channels)))
+  model.add(BatchNormalization())
+  model.add(Dropout(0.3))
+
   model.add(GlobalAveragePooling1D())
-  # model.add(Dense(50, activation='relu'))
-  # model.add(Dropout(0.2))
-  model.add(Dense(50, activation='relu'))
-  model.add(Dropout(0.2))
+  model.add(Dense(40, activation='tanh', kernel_regularizer=regularizers.l2(0.001)))
+  model.add(Dropout(0.3))
+
   model.add(Dense(possibilities, activation='softmax'))
 
-  # model = Sequential()
-  # model.add(Conv1D(40, 10, strides=2, padding='same', activation='relu', input_shape=(samples, channels)))
-  # model.add(Dropout(0.1))
-  # model.add(MaxPooling1D(3))
-  # model.add(Conv1D(40, 5, strides=2, padding='same', activation='relu'))
-  # model.add(Dropout(0.1))
-  # model.add(MaxPooling1D(3))
-  # model.add(Conv1D(40, 4, strides=1, padding='same', activation='relu'))
-  # model.add(Dropout(0.1))
-  # model.add(MaxPooling1D(3))
-  # model.add(GlobalAveragePooling1D())
-  # model.add(Dense(50, activation='relu'))
-  # model.add(Dropout(0.1))
-  # model.add(Dense(possibilities, activation='softmax'))
-
   model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+  lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5)
+  callbacks.append(lr_scheduler)
 
   history = model.fit(X_train, y_train, validation_data=(
         X_test, y_test), batch_size=batch_size,
         epochs=epochs, verbose=0, callbacks=callbacks, shuffle=True)
 
-  return words_map, samples, model, history
+  y_pred = np.asarray([np.argmax(model.predict(np.expand_dims(x, axis=0), verbose=0), axis=1) for x in X_test])
+  report = classification_report(np.argmax(y_test, axis=1), y_pred.flatten(), target_names=words_map) 
+
+  return words_map, new_samples, model, history, report
 
 def separate_data(emg_words, emg_data, window_size):
     new_words = []

@@ -1,4 +1,4 @@
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes, AggOperations, WaveletTypes, WaveletDenoisingTypes, ThresholdTypes, WaveletExtensionTypes, NoiseEstimationLevelTypes
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes, AggOperations
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 import pandas as pd
 import numpy as np
@@ -116,11 +116,9 @@ def preprocess(data, board_id, exg_channels):
         channel_data = data[channel].to_numpy() if isinstance(data[channel], pd.Series) else data[channel]
         DataFilter.detrend(channel_data, DetrendOperations.CONSTANT.value)
         DataFilter.remove_environmental_noise(channel_data, sampling_rate, NoiseTypes.SIXTY.value);
-        DataFilter.perform_bandpass(channel_data, sampling_rate, 2, 57, 4, FilterTypes.BUTTERWORTH.value, 1.0)
+        DataFilter.perform_bandpass(channel_data, sampling_rate, 5, 230, 4, FilterTypes.BUTTERWORTH.value, 1.0)
+        DataFilter.perform_bandstop(channel_data, sampling_rate, 115, 135, 4, FilterTypes.BUTTERWORTH.value, 1.0)
         DataFilter.perform_rolling_filter(channel_data, 3, AggOperations.MEAN.value)
-        # DataFilter.perform_wavelet_denoising(channel_data, WaveletTypes.BIOR3_9, 3,
-        #                                          WaveletDenoisingTypes.SURESHRINK, ThresholdTypes.HARD,
-        #                                          WaveletExtensionTypes.SYMMETRIC, NoiseEstimationLevelTypes.FIRST_LEVEL)
     if isinstance(data[channel], pd.Series):
       return data.drop(data.columns[0],axis=1).to_numpy()
     return data
